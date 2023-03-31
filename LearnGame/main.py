@@ -1,7 +1,6 @@
 import gymnasium
 
-import QLearning.qlearning
+import qLearning.QLearning as qLearning
 
 env = gymnasium.make("Taxi-v3")
-
-QLearning.qlearning.q_learn(env)
+qLearning.q_learn(env)

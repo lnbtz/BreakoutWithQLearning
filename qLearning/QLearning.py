@@ -32,6 +32,8 @@ def q_learn(environment):
             next_max = np.max(q_table[next_state])
             # get new value
             new_value = (1 - config.ALPHA) * old_value + config.ALPHA * (reward + config.GAMMA * next_max)
+            # https://miro.medium.com/v2/resize:fit:1072/format:webp/1*y0V_OFDJIcamdP7kCw7v5Q.png
+            # https://towardsdatascience.com/q-learning-algorithm-from-explanation-to-implementation-cdbeda2ea187
             # update q table
             q_table[state, action] = new_value
             # update state
@@ -42,7 +44,11 @@ def q_learn(environment):
         print("done after {} epochs\n".format(epochs))
 
     # save q table
-    with h5py.File("q_table.h5", "w") as f:
+    with h5py.File("q_table1.h5", "w") as f:
         f.create_dataset("q_table", data=q_table)
 
     print("done training")
+
+
+class QLearning:
+    pass
