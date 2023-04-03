@@ -36,8 +36,6 @@ class QLearning:
                 next_max = self.qTable.getNextMax(next_state)
                 # get new value
                 new_value = (1 - self.alpha) * old_value + self.alpha * (reward + self.gamma * next_max)
-                # https://miro.medium.com/v2/resize:fit:1072/format:webp/1*y0V_OFDJIcamdP7kCw7v5Q.png
-                # https://towardsdatascience.com/q-learning-algorithm-from-explanation-to-implementation-cdbeda2ea187
                 # update q table
                 self.qTable.updateQValue(state, action, new_value)
                 # update state
