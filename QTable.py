@@ -1,6 +1,8 @@
 import h5py
 import numpy as np
 import pickle
+from datetime import datetime
+
 
 class QTable:
     def __init__(self, actionSpace, pathToExisting=None):
@@ -50,6 +52,4 @@ class QTable:
         return max_value
 
     def saveToFile(self, path):
-#        with h5py.File(path, "w") as f:
-#            f.create_dataset("q_table", data=self.qTable)
-        pickle.dump(self.qTable, open("q_table.p","wb"))
+        pickle.dump(self.qTable, open(path + datetime.now().strftime("%m|%d|%Y|%H:%M:%S") + '.qtable', "wb"))

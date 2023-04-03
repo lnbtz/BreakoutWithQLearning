@@ -3,13 +3,14 @@ from QTable import QTable
 
 
 class QLearning:
-    def __init__(self, environment, alpha, epsilon, gamma, numberOfGames, pathToExisting=None):
+    def __init__(self, environment, alpha, epsilon, gamma, numberOfGames, savingPath, pathToExisting=None):
         self.environment = environment
         self.qTable = QTable(environment.actionSpaceSize, pathToExisting)
         self.alpha = alpha
         self.epsilon = epsilon
         self.gamma = gamma
         self.numberOfGames = numberOfGames
+        self.savingPath = savingPath
 
     def qLearn(self):
         # start training
@@ -47,6 +48,7 @@ class QLearning:
 
             print("done after {} epochs\n".format(epochs))
 
-        self.qTable.saveToFile("newFile.h5")
+        print(self.savingPath)
+        self.qTable.saveToFile(self.savingPath)
         self.environment.close()
         print("done training")
