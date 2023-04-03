@@ -5,7 +5,7 @@ from QTable import QTable
 class QLearning:
     def __init__(self, environment, alpha, epsilon, gamma, numberOfGames, pathToExisting=None):
         self.environment = environment
-        self.qTable = QTable(environment.observationSpaceSize, environment.actionSpaceSize, pathToExisting)
+        self.qTable = QTable(environment.actionSpaceSize, pathToExisting)
         self.alpha = alpha
         self.epsilon = epsilon
         self.gamma = gamma
@@ -16,6 +16,8 @@ class QLearning:
         for i in range(1, self.numberOfGames):
             # setup game
             state = self.environment.reset()
+            state = self.environment.step(0)
+
             epochs = 0
             done = False
 

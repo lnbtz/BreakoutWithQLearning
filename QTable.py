@@ -1,9 +1,9 @@
 import h5py
 import numpy as np
+import pickle
 
 class QTable:
-    def __init__(self, observationSpace, actionSpace, pathToExisting=None):
-        self.observationSpace = observationSpace
+    def __init__(self, actionSpace, pathToExisting=None):
         self.actionSpace = actionSpace
 
         if pathToExisting is None:
@@ -16,7 +16,7 @@ class QTable:
         max_value = -np.inf
         best_action = None
         for i in range(self.actionSpace):
-            state_value_hash = (state, i)
+            state_value_hash = (str(state), i)  #String value
             try:
                 q_value = self.qTable[state_value_hash]
             except KeyError:
@@ -29,18 +29,18 @@ class QTable:
     # TODO return 0 or None?
     def getQValue(self, state, action):
         try:
-            q_value = self.qTable[(state, action)]
+            q_value = self.qTable[(str(state), action)]
         except KeyError:
             q_value = 0
         return q_value
 
     def updateQValue(self, state, action, newValue):
-        self.qTable[(state, action)] = newValue
+        self.qTable[(str(state), action)] = newValue
 
     def getNextMax(self, nextState):
         max_value = -np.inf
         for i in range(self.actionSpace):
-            state_value_hash = (nextState, i)
+            state_value_hash = (str(nextState), i)
             try:
                 q_value = self.qTable[state_value_hash]
             except KeyError:
@@ -50,5 +50,6 @@ class QTable:
         return max_value
 
     def saveToFile(self, path):
-        with h5py.File(path, "w") as f:
-            f.create_dataset("q_table", data=self.qTable)
+#        with h5py.File(path, "w") as f:
+#            f.create_dataset("q_table", data=self.qTable)
+        pickle.dump(self.qTable, open("q_table.p","wb"))

@@ -10,8 +10,9 @@ class Environment:
         self.onlyOneLife = onlyOneLife
         self.observationTransformer = observationTransformer
         self.env = gym.make(self.GAME, render_mode="rgb_array", obs_type=envObsType)
-        self.observationSpaceSize = self.env.observation_space.n
-        self.actionSpace = self.env.action_space.n
+        #self.observationSpaceSize = self.env.observation_space.n
+        #self.actionSpace = self.env.action_space.n
+        self.actionSpaceSize = 4
         self.env.reset()
 
     def step(self, action):
@@ -20,7 +21,8 @@ class Environment:
         if self.onlyOneLife and info['lives'] < 5:
             terminated = True
 
-        return self.observationTransformer.transform(observation), reward, terminated
+        #return self.observationTransformer.transform(observation), reward, terminated
+        return observation, reward, terminated
 
     def reset(self):
         self.env.reset()
