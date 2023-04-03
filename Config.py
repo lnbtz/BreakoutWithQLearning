@@ -1,5 +1,6 @@
 from qLearning.QLearning import QLearning
 from Environment import Environment
+from observationTransformers.StandardObservationTransformer import StandardObservationTransformer
 
 
 class Config:
@@ -11,7 +12,7 @@ class Config:
                  gamma,
                  numberOfGames,
                  pathToExisting=None,
-                 observationTransformer=None
+                 observationTransformer=StandardObservationTransformer()
                  ):
         self.environment = Environment(onlyOneLife, envObsType, observationTransformer)
         self.qLearning = QLearning(self.environment, alpha, epsilon, gamma, numberOfGames, pathToExisting)
