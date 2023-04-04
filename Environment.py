@@ -23,7 +23,10 @@ class Environment:
         return self.observationTransformer.transform(observation), reward, terminated
 
     def reset(self):
-        self.env.reset()
+        return self.env.reset()
 
     def close(self):
         self.env.close()
+
+    def render(self):
+        return self.env.render()

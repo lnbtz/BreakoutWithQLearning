@@ -1,4 +1,3 @@
-import h5py
 import numpy as np
 import pickle
 from datetime import datetime
@@ -11,8 +10,8 @@ class QTable:
         if pathToExisting is None:
             self.qTable = {}
         else:
-            with h5py.File(pathToExisting, "r") as f:
-                self.qTable = f["q_table"][:]
+            with open(pathToExisting, 'rb') as inp:
+                self.qTable = pickle.load(inp)
 
     def getBestAction(self, state):
         max_value = -np.inf
