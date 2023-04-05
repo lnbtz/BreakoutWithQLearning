@@ -8,7 +8,7 @@ from get_project_root import root_path
 PLAY_SPEED = 50
 
 qTables_path = root_path(ignore_cwd=False) + '/qTables/'
-file_name = '04|04|2023|17:36:59.qtable'
+file_name = '04|05|2023|16:08:21.qtable'
 path = qTables_path + file_name
 
 env = Environment(True, OPT_ENV_RAM, StandardObservationTransformer())

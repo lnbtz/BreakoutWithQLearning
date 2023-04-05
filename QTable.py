@@ -1,6 +1,7 @@
 import numpy as np
 import pickle
 from datetime import datetime
+import random
 
 
 class QTable:
@@ -25,7 +26,8 @@ class QTable:
             if q_value > max_value:
                 max_value = q_value
                 best_action = i
-        return best_action
+
+        return best_action if max_value != 0 else random.randrange(self.actionSpace)
 
     # TODO return 0 or None?
     def getQValue(self, state, action):
