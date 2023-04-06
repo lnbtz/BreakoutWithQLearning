@@ -53,5 +53,5 @@ class QTable:
 
     @staticmethod
     def loadFromFile(path):
-        with open(path, "r") as inp:
+        with open(path, "rb") as inp:
             return pickle.load(inp)
