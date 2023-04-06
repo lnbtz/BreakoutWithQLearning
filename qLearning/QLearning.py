@@ -1,11 +1,10 @@
 import random
-from QTable import QTable
 
 
 class QLearning:
-    def __init__(self, environment, alpha, epsilon, gamma, numberOfGames, savingPath, pathToExisting=None):
+    def __init__(self, environment, qTable, alpha, epsilon, gamma, numberOfGames, savingPath):
         self.environment = environment
-        self.qTable = QTable(environment.actionSpaceSize, pathToExisting)
+        self.qTable = qTable
         self.alpha = alpha
         self.epsilon = epsilon
         self.gamma = gamma

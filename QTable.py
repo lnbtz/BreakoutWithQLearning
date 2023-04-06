@@ -5,20 +5,16 @@ import random
 
 
 class QTable:
-    def __init__(self, actionSpace, pathToExisting=None):
+    def __init__(self, actionSpace, trainingParameter):
         self.actionSpace = actionSpace
-
-        if pathToExisting is None:
-            self.qTable = {}
-        else:
-            with open(pathToExisting, 'rb') as inp:
-                self.qTable = pickle.load(inp)
+        self.qTable = {}
+        self.trainingParameter = trainingParameter
 
     def getBestAction(self, state):
         max_value = -np.inf
         best_action = None
         for i in range(self.actionSpace):
-            state_value_hash = (str(state), i)  #String value
+            state_value_hash = (str(state), i)  # String value
             try:
                 q_value = self.qTable[state_value_hash]
             except KeyError:
@@ -53,4 +49,9 @@ class QTable:
         return max_value
 
     def saveToFile(self, path):
-        pickle.dump(self.qTable, open(path + datetime.now().strftime("%m|%d|%Y|%H:%M:%S") + '.qtable', "wb"))
+        pickle.dump(self, open(path + datetime.now().strftime("%m|%d|%Y|%H:%M:%S") + '.qtable', "wb"))
+
+    @staticmethod
+    def loadFromFile(path):
+        with open(path, "r") as inp:
+            return pickle.load(inp)
