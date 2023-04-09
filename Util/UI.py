@@ -79,15 +79,10 @@ class UI:
             self.gamma = float(gamma_entry.get())
             self.number_of_games = int(number_of_games_entry.get())
 
-            print(self.env_obs_type)
-            print(self.alpha)
-            print(self.epsilon)
-            print(self.gamma)
-            print(self.number_of_games)
+            window.destroy()
             start_config = Config.Config(self.life_switch, self.env_obs_type, self.alpha, self.epsilon, self.gamma,
                                          self.number_of_games)
             start_config.doRun()
-            window.destroy()
 
         button.pack()
         button.bind("<Button-1>", submit)
