@@ -74,10 +74,10 @@ class UI:
 
         def submit(event):
             self.env_obs_type = clicked.get()
-            self.alpha = alpha_entry.get()
-            self.epsilon = epsilon_entry.get()
-            self.gamma = gamma_entry.get()
-            self.number_of_games = number_of_games_entry.get()
+            self.alpha = float(alpha_entry.get())
+            self.epsilon = float(epsilon_entry.get())
+            self.gamma = float(gamma_entry.get())
+            self.number_of_games = int(number_of_games_entry.get())
 
             print(self.env_obs_type)
             print(self.alpha)
@@ -92,8 +92,3 @@ class UI:
         button.pack()
         button.bind("<Button-1>", submit)
         window.mainloop()
-
-
-if __name__ == "__main__":
-    ui = UI()
-    ui.start()
