@@ -1,10 +1,13 @@
+
 import gymnasium as gym
-from gymnasium.utils.play import play
 
-env = gym.make("BreakoutDeterministic-v4", render_mode="rgb_array")
+env = gym.make("BipedalWalker-v3", render_mode="human")
 
-play(env, keys_to_action={
-    "a" : 3,
-    "d" : 2,
-    "w" : 1
-})
+while True:
+    env.reset()
+    for i in range(1000):
+        observation, reward, truncated, done, info = env.step(env.action_space.sample())
+        print(observation)
+        print("reward: ", reward)
+        env.render()
+
