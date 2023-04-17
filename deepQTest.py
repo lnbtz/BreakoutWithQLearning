@@ -14,6 +14,7 @@ import time
 import random
 
 RANDOM_SEED = 5
+## change
 tf.random.set_seed(RANDOM_SEED)
 
 env = gym.make('CartPole-v1')
