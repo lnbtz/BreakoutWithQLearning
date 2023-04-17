@@ -13,6 +13,8 @@ class QLearning:
 
     def qLearn(self):
         # start training
+        epochs = 0
+        # while epochs < 1000:
         for i in range(1, self.numberOfGames):
             # setup game
             state = self.environment.reset()
@@ -31,7 +33,8 @@ class QLearning:
 
                 # get next state
                 next_state, reward, done = self.environment.step(action)
-
+                if done:
+                    reward = -1
                 # get last value
                 old_value = self.qTable.getQValue(state, action)
                 # get next best value
@@ -45,7 +48,7 @@ class QLearning:
 
                 epochs += 1
 
-            print("done after {} epochs\n".format(epochs))
+            # print("done after {} epochs\n".format(epochs))
 
         print(self.savingPath)
         self.qTable.saveToFile(self.savingPath)
