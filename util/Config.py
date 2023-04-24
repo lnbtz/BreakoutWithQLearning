@@ -3,8 +3,7 @@ from environment.Environment import Environment
 from environment.observationTransformers.StandardObservationTransformer import StandardObservationTransformer
 from get_project_root import root_path
 from os import path
-import tensorflow as tf
-from tensorflow import keras
+from util.networkInitializer import init_q_net
 
 
 class PathError(Exception):
@@ -31,21 +30,10 @@ class Config:
         self.numberOfGames = numberOfGames
         self.decayRate = decay_rate
         environment = Environment(onlyOneLife, envObsType, observationTransformer)
-        q_net = self.init_q_net(environment.env)
+        q_net = init_q_net(environment.env, self.learningRate)
         self.deepQLearning = DeepQLearning(environment, q_net, learning_rate, exploration_rate, discount_factor, numberOfGames,
                                            self.decayRate,
                                            self._initSavingPath(savingPath))
-
-    def init_q_net(self, environment):
-        init = tf.keras.initializers.HeUniform()
-        model = keras.Sequential()
-
-        model.add(keras.layers.Dense(24, input_shape=environment.observation_space.shape, activation='relu', kernel_initializer=init))
-        model.add(keras.layers.Dense(12, activation='relu', kernel_initializer=init))
-        model.add(keras.layers.Dense(4, activation='linear', kernel_initializer=init))
-        model.compile(loss=tf.keras.losses.Huber(), optimizer=tf.keras.optimizers.Adam(lr=self.learningRate),
-                      metrics=['accuracy'])
-        return model
 
     def doRun(self):
         self.deepQLearning.deepQLearn()
