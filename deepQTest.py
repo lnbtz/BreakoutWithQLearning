@@ -10,23 +10,24 @@ import numpy as np
 from tensorflow import keras
 
 from collections import deque
-import time
 import random
+from get_project_root import root_path
 
 RANDOM_SEED = 5
-## change
 tf.random.set_seed(RANDOM_SEED)
 
 env = gym.make('CartPole-v1')
-env.reset()
+env.reset(seed=RANDOM_SEED)
 np.random.seed(RANDOM_SEED)
 
 print("Action Space: {}".format(env.action_space))
 print("State space: {}".format(env.observation_space))
 
 # An episode a full game
-train_episodes = 300
+train_episodes = 50
 test_episodes = 100
+
+base_path = root_path(ignore_cwd=False) + "/qNets/"
 
 
 def agent(state_shape, action_shape):
@@ -82,9 +83,9 @@ def train(env, replay_memory, model, target_model, done):
 
 
 def main():
-    epsilon = 1  # Epsilon-greedy algorithm in initialized at 1 meaning every step is random at the start
-    max_epsilon = 1  # You can't explore more than 100% of the time
-    min_epsilon = 0.01  # At a minimum, we'll always explore 1% of the time
+    epsilon = 1 # Epsilon-greedy algorithm in initialized at 1 meaning every step is random at the start
+    max_epsilon = 1 # You can't explore more than 100% of the time
+    min_epsilon = 0.01 # At a minimum, we'll always explore 1% of the time
     decay = 0.01
 
     # 1. Initialize the Target and Main models
@@ -94,6 +95,10 @@ def main():
     target_model = agent(env.observation_space.shape, env.action_space.n)
     target_model.set_weights(model.get_weights())
 
+
+    # Test saving
+    keras.saving.save_model(target_model, base_path + "model")
+    keras.saving.save_model(target_model, base_path + "model")
     replay_memory = deque(maxlen=50_000)
 
     target_update_counter = 0
@@ -106,11 +111,11 @@ def main():
 
     for episode in range(train_episodes):
         total_training_rewards = 0
-        observation = env.reset()
+        observation, _ = env.reset()
         done = False
         while not done:
             steps_to_update_target_model += 1
-            if True:
+            if False:
                 env.render()
 
             random_number = np.random.rand()
@@ -125,7 +130,9 @@ def main():
                 encoded_reshaped = encoded.reshape([1, encoded.shape[0]])
                 predicted = model.predict(encoded_reshaped).flatten()
                 action = np.argmax(predicted)
-            new_observation, reward, done, _, info = env.step(action)
+
+            new_observation, reward, done, truncated, info = env.step(action)
+            done = done or truncated
             replay_memory.append([observation, action, reward, new_observation, done])
 
             # 3. Update the Main Network using the Bellman Equation
@@ -136,8 +143,7 @@ def main():
             total_training_rewards += reward
 
             if done:
-                print('Total training rewards: {} after n steps = {} with final reward = {}'.format(
-                    total_training_rewards, episode, reward))
+                print('Total training rewards: {} after n steps = {} with final reward = {}'.format(total_training_rewards, episode, reward))
                 total_training_rewards += 1
 
                 if steps_to_update_target_model >= 100:
@@ -148,6 +154,8 @@ def main():
 
         epsilon = min_epsilon + (max_epsilon - min_epsilon) * np.exp(-decay * episode)
     env.close()
+
+    keras.saving.save_model(target_model, base_path + "model")
 
 
 if __name__ == '__main__':
