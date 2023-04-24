@@ -5,8 +5,18 @@ from collections import deque
 
 from util.networkInitializer import init_q_net
 
+
 class DeepQLearning:
-    def __init__(self, environment, qNet, learning_rate, exploration_rate, discount_factor, numberOfGames, decay_rate, savingPath):
+    BACKPROPAGATION_RATE = 4
+    REPLAY_MEMORY_LENGTH = 50000
+    MIN_REPLAY_SIZE = 1000
+    BATCH_SIZE = 64 * 2
+    COPY_STEP_LIMIT = 100
+    MAX_LEARNING_RATE = 1
+    MIN_LEARNING_RATE = 0.01
+
+    def __init__(self, environment, qNet, learning_rate, exploration_rate, discount_factor, numberOfGames, decay_rate,
+                 savingPath):
         self.environment = environment
         self.qNet = qNet
         self.learningRate = learning_rate
@@ -15,7 +25,6 @@ class DeepQLearning:
         self.decayRate = decay_rate
         self.numberOfGames = numberOfGames
         self.savingPath = savingPath
-
 
     def deepQLearn(self):
         main_q_net = init_q_net(self.environment, self.learningRate)

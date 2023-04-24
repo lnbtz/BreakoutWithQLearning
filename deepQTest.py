@@ -61,7 +61,7 @@ def train(env, replay_memory, model, target_model, done):
 
     batch_size = 64 * 2
     mini_batch = random.sample(replay_memory, batch_size)
-    current_states = np.array([transition[0] for transition in mini_batch])
+    current_states = np.array([sample[0] for sample in mini_batch])
     current_qs_list = model.predict(current_states)
     new_current_states = np.array([transition[3] for transition in mini_batch])
     future_qs_list = target_model.predict(new_current_states)
