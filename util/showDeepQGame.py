@@ -1,21 +1,21 @@
 from deepQLearning.QNet import QNet
 import pygame
-import gymnasium as gym
+from environment.Environment import Environment
+from environment.observationTransformers.StandardObservationTransformer import StandardObservationTransformer
+from options import *
 from get_project_root import root_path
 
 PLAY_SPEED = 50
 DELAY_AFTER_DEATH = 2  # Seconds
 
-qNets_path = root_path(ignore_cwd=False) + '/qNets/'
-file_name = "model"
+qNets_path = root_path(ignore_cwd=True) + '/qNets/'
+file_name = "test"
 
-game_name = 'CartPole-v1'
-
-qNet = QNet(qNets_path + "model")
-env = gym.make(game_name, render_mode="rgb_array")
+qNet = QNet.loadFromFile(qNets_path + file_name)
+env = Environment(True, OPT_ENV_RAM, StandardObservationTransformer())
 
 # Initialize pygame
-observation, info = env.reset(seed=5)
+observation, info = env.reset()
 
 ary = env.render()
 width = len(ary[0])
@@ -23,14 +23,14 @@ height = len(ary)
 
 pygame.init()
 display = pygame.display.set_mode((width, height))
-pygame.display.set_caption(game_name)
+pygame.display.set_caption('Breakout - Q-Agent')
 clock = pygame.time.Clock()
 
 total_rewards = 0
 running = True
 while running:
     action = qNet.getBestAction(observation)
-    observation, reward, terminated, _, info = env.step(action)
+    observation, reward, terminated = env.step(action)
     total_rewards += reward
 
     ary = env.render()

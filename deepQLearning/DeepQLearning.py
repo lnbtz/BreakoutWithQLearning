@@ -2,7 +2,7 @@ import random
 
 import numpy as np
 from collections import deque
-
+from tensorflow import keras
 from util.networkInitializer import init_q_net
 
 
@@ -59,6 +59,8 @@ class DeepQLearning:
                 steps = 0
 
             self.learningRate = self.MIN_LEARNING_RATE + (self.MAX_LEARNING_RATE - self.MAX_LEARNING_RATE) * np.exp(-self.decayRate * episode)
+
+        keras.saving.save_model(self.qNet, self.savingPath)
 
     def train(self, replay_memory, main_q_net):
         if len(replay_memory) < self.MIN_REPLAY_SIZE:

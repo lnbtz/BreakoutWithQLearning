@@ -2,12 +2,7 @@ from deepQLearning.DeepQLearning import DeepQLearning
 from environment.Environment import Environment
 from environment.observationTransformers.StandardObservationTransformer import StandardObservationTransformer
 from get_project_root import root_path
-from os import path
 from util.networkInitializer import init_q_net
-
-
-class PathError(Exception):
-    pass
 
 
 class Config:
@@ -38,13 +33,9 @@ class Config:
     def doRun(self):
         self.deepQLearning.deepQLearn()
 
-
     @staticmethod
     def _initSavingPath(savingPath):
         if savingPath is None:
-            savingPath = root_path(ignore_cwd=False) + '/qNets/'
-
-        if not path.exists(savingPath):
-            raise PathError
+            return root_path(ignore_cwd=False) + '/qNets/' + "default"
         else:
             return savingPath
