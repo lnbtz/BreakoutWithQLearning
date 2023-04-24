@@ -42,7 +42,7 @@ class Config:
 
         model.add(keras.layers.Dense(24, input_shape=environment.observation_space.shape, activation='relu', kernel_initializer=init))
         model.add(keras.layers.Dense(12, activation='relu', kernel_initializer=init))
-        model.add(keras.layers.Dense(len(environment.action_space), activation='linear', kernel_initializer=init))
+        model.add(keras.layers.Dense(4, activation='linear', kernel_initializer=init))
         model.compile(loss=tf.keras.losses.Huber(), optimizer=tf.keras.optimizers.Adam(lr=self.learningRate),
                       metrics=['accuracy'])
         return model
@@ -54,7 +54,7 @@ class Config:
     @staticmethod
     def _initSavingPath(savingPath):
         if savingPath is None:
-            savingPath = root_path(ignore_cwd=False) + '/qTables/'
+            savingPath = root_path(ignore_cwd=False) + '/qNets/'
 
         if not path.exists(savingPath):
             raise PathError

@@ -2,7 +2,7 @@ import random
 
 
 class DeepQLearning:
-    def __init__(self, environment, qNet, learning_rate, exploration_rate, discount_factor, decay_rate, numberOfGames, savingPath):
+    def __init__(self, environment, qNet, learning_rate, exploration_rate, discount_factor, numberOfGames, decay_rate, savingPath):
         self.environment = environment
         self.qNet = qNet
         self.learningRate = learning_rate
@@ -16,3 +16,5 @@ class DeepQLearning:
     def deepQLearn(self):
         for i in range(self.numberOfGames):
             state, _ = self.environment.reset()
+            print(state)
+            
