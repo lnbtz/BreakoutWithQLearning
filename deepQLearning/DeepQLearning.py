@@ -15,6 +15,7 @@ class DeepQLearning:
     MAX_EXPLORATION_RATE = 1
     MIN_EXPLORATION_RATE = 0.01
     EXPLORATION_FRAMES = 50_000
+    MAX_STEPS_PER_EPISODE = 10_000
 
     optimizer = keras.optimizers.Adam(learning_rate=0.00025, clipnorm=1.0)
     loss_function = keras.losses.Huber()
@@ -34,27 +35,32 @@ class DeepQLearning:
         main_q_net = init_q_net(self.environment, self.learningRate)
         main_q_net.set_weights(self.qNet.get_weights())
         replay_memory = []
+        reward_memory = []
+        running_reward = 0
+        total_steps = 0
+        episode_count = 1
 
-        steps = 0
-        frames_until_no_random = 0
-        for episode in range(self.numberOfGames):
-            print("Episode: " + str(episode+1))
+        while True:
             state, _ = self.environment.reset()
+            episode_reward = 0
 
-            done = False
-            while not done:
-                if frames_until_no_random < self.EXPLORATION_FRAMES or random.uniform(0, 1) <= self.explorationRate:
+            # No infinite Loops
+            for step in range(1, self.MAX_STEPS_PER_EPISODE):
+                total_steps += 1
+
+                if total_steps < self.EXPLORATION_FRAMES or random.uniform(0, 1) <= self.explorationRate:
                     action = self.environment.env.action_space.sample()
                 else:
                     reshaped_state = state.reshape([1, state.shape[0]])
-                    predicted_q_values = main_q_net.call(tf.convert_to_tensor(reshaped_state)).numpy().flatten()
+                    predicted_q_values = main_q_net(tf.convert_to_tensor(reshaped_state)).numpy().flatten()
                     action = predicted_q_values.argmax()
 
                 new_state, reward, done = self.environment.step(action)
-                steps += 1
-                replay_memory.append([state, action, reward, new_state, done])
 
-                if steps % self.BACKPROPAGATION_RATE == 0 or done:
+                replay_memory.append([state, action, reward, new_state, done])
+                episode_reward += reward
+
+                if total_steps % self.BACKPROPAGATION_RATE == 0:
                     self.train(replay_memory, main_q_net)
 
                 state = new_state
@@ -62,14 +68,27 @@ class DeepQLearning:
                 if len(replay_memory) > self.REPLAY_MEMORY_LENGTH:
                     del replay_memory[:1]
 
-            # Done!
-            if steps >= self.COPY_STEP_LIMIT:
-                print("Copying weights to Target Net")
-                self.qNet.set_weights(main_q_net.get_weights())
-                steps = 0
+                if total_steps % self.COPY_STEP_LIMIT == 0:
+                    self.qNet.set_weights(main_q_net.get_weights())
+                    print("Running Reward: " + str(running_reward) + " at Episode " + str(episode_count))
 
-            frames_until_no_random += 1
-            self.explorationRate = self.MIN_EXPLORATION_RATE + (self.MAX_EXPLORATION_RATE - self.MAX_EXPLORATION_RATE) * np.exp(-self.decayRate * episode)
+                self.explorationRate = self.MIN_EXPLORATION_RATE + (self.MAX_EXPLORATION_RATE - self.MAX_EXPLORATION_RATE) * np.exp(-self.decayRate * episode_count)
+
+                if done:
+                    break
+
+            # Episode done
+            reward_memory.append(episode_reward)
+            if len(reward_memory) > 100:
+                del reward_memory[:1]
+            running_reward = np.mean(reward_memory)
+
+            episode_count += 1
+
+            # Durchschnittlicher reward der letzten 100 Episoden
+            if running_reward > 20:
+                print("Found Solution after " + str(episode_count) + " Episodes")
+                break
 
         print("Saving Target Net")
         keras.saving.save_model(self.qNet, self.savingPath)
@@ -96,7 +115,7 @@ class DeepQLearning:
                 max_future_reward = -1
 
             q_values = predicted_q_values[index]
-            q_values[actions[index]] = (1 - self.learningRate) * q_values[actions[index]] + self.learningRate * max_future_reward
+            q_values[actions[index]] = max_future_reward
 
             X.append(states[index])
             Y.append(q_values)
