@@ -106,18 +106,11 @@ class DeepQLearning:
         dones = np.array([float(replay_memory[i][4]) for i in random_indices])
         actions = np.array([replay_memory[i][1] for i in random_indices])
 
-        X = []
         Y = []
+        max_future_rewards = ((rewards * self.discountFactor * tf.reduce_max(target_q_values, axis=1)) * (1- dones) - dones).numpy()
         for index in range(self.BATCH_SIZE):
-            if not dones[index]:
-                max_future_reward = rewards[index] + self.discountFactor * np.max(target_q_values[index])
-            else:
-                max_future_reward = -1
-
             q_values = predicted_q_values[index]
-            q_values[actions[index]] = max_future_reward
-
-            X.append(states[index])
+            q_values[actions[index]] = max_future_rewards[index]
             Y.append(q_values)
 
         with tf.GradientTape() as tape:
