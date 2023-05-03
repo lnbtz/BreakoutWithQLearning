@@ -13,26 +13,23 @@ class DeepQLearning:
     BATCH_SIZE = 64 * 2
     COPY_STEP_LIMIT = 100
     MAX_EXPLORATION_RATE = 1
-    MIN_EXPLORATION_RATE = 0.01
     EXPLORATION_FRAMES = 50_000
     MAX_STEPS_PER_EPISODE = 10_000
 
-    EPSILON_GREEDY_FRAMES = 1_000_000.0
-    EPSILON_INTERVAL = (MAX_EXPLORATION_RATE - MIN_EXPLORATION_RATE)
-
-    optimizer = keras.optimizers.Adam(learning_rate=0.00025, clipnorm=1.0)
     loss_function = keras.losses.Huber()
 
-    def __init__(self, environment, qNet, learning_rate, exploration_rate, discount_factor, numberOfGames, decay_rate,
+    def __init__(self, environment, qNet, learning_rate, exploration_rate, min_exploration_rate, discount_factor, solutionRunningReward, decay_rate,
                  savingPath):
         self.environment = environment
         self.qNet = qNet
         self.learningRate = learning_rate
         self.explorationRate = exploration_rate
+        self.minExplorationRate = min_exploration_rate
         self.discountFactor = discount_factor
         self.decayRate = decay_rate
-        self.numberOfGames = numberOfGames
         self.savingPath = savingPath
+        self.solutionRunningReward = solutionRunningReward
+        self.optimizer = keras.optimizers.Adam(learning_rate=learning_rate, clipnorm=1.0)
 
     def deepQLearn(self):
         main_q_net = init_q_net(self.environment, self.learningRate)
@@ -73,12 +70,9 @@ class DeepQLearning:
 
                 if total_steps % self.COPY_STEP_LIMIT == 0:
                     self.qNet.set_weights(main_q_net.get_weights())
-                    print("Running Reward: " + str(running_reward) + " at Episode " + str(episode_count))
+                    print("Running Reward: " + str(running_reward) + " at Episode " + str(episode_count) + " with Epsilon " + str(self.explorationRate))
 
-                self.explorationRate = self.MIN_EXPLORATION_RATE + (self.MAX_EXPLORATION_RATE - self.MIN_EXPLORATION_RATE) * np.exp(-self.decayRate * episode_count)
-                # print(str(self.explorationRate))
-                # self.explorationRate -= self.EPSILON_INTERVAL / self.EPSILON_GREEDY_FRAMES
-                # self.explorationRate = max(self.explorationRate, self.MIN_EXPLORATION_RATE)
+                self.explorationRate = self.minExplorationRate + (self.MAX_EXPLORATION_RATE - self.minExplorationRate) * np.exp(-self.decayRate * episode_count)
 
                 if done:
                     break
@@ -113,7 +107,7 @@ class DeepQLearning:
         actions = np.array([replay_memory[i][1] for i in random_indices])
 
         Y = []
-        max_future_rewards = ((rewards * self.discountFactor * tf.reduce_max(target_q_values, axis=1)) * (1- dones) - dones).numpy()
+        max_future_rewards = ((rewards * self.discountFactor * tf.reduce_max(target_q_values, axis=1)) * (1 - dones) - dones).numpy()
         for index in range(self.BATCH_SIZE):
             q_values = predicted_q_values[index]
             q_values[actions[index]] = max_future_rewards[index]

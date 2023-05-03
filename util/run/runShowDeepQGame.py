@@ -8,7 +8,9 @@ from util.showDeepQGame import showQGame
 qNets_path = root_path(ignore_cwd=True) + '/qNets/'
 file_name = "test"
 
-qNet = QNet.loadFromFile(qNets_path + file_name)
-env = Environment(True, OPT_ENV_RAM, StandardObservationTransformer())
+# qNet = QNet.loadFromFile(qNets_path + file_name)
+# env = Environment(True, OPT_ENV_RAM, StandardObservationTransformer())
 
+qNet = QNet.loadFromFile(qNets_path + "cartpole_test")
+env = Environment(OPT_GAME_CARTPOLE, False, OPT_ENV_RAM, StandardObservationTransformer())
 showQGame(env, qNet)

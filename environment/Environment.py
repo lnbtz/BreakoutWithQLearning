@@ -1,17 +1,21 @@
 import gymnasium as gym
+from util.options import OPT_GAME_BREAKOUT, OPT_GAME_CARTPOLE
 
 
 class Environment:
-    GAME = "BreakoutDeterministic-v4"
 
     def __init__(self,
+                 game,
                  onlyOneLife,
                  envObsType,
                  observationTransformer):
         self.onlyOneLife = onlyOneLife
         self.observationTransformer = observationTransformer
-        self.env = gym.make(self.GAME, render_mode="rgb_array", obs_type=envObsType)
-        self.actionSpaceSize = 4
+        self.game = game
+        if game == OPT_GAME_BREAKOUT:
+            self.env = gym.make(self.game, render_mode="rgb_array", obs_type=envObsType)
+        else:
+            self.env = gym.make(self.game, render_mode="rgb_array")
         self.env.reset()
 
     def step(self, action):
