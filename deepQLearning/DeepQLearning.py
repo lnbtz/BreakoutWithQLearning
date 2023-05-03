@@ -17,6 +17,9 @@ class DeepQLearning:
     EXPLORATION_FRAMES = 50_000
     MAX_STEPS_PER_EPISODE = 10_000
 
+    EPSILON_GREEDY_FRAMES = 1_000_000.0
+    EPSILON_INTERVAL = (MAX_EXPLORATION_RATE - MIN_EXPLORATION_RATE)
+
     optimizer = keras.optimizers.Adam(learning_rate=0.00025, clipnorm=1.0)
     loss_function = keras.losses.Huber()
 
@@ -72,7 +75,10 @@ class DeepQLearning:
                     self.qNet.set_weights(main_q_net.get_weights())
                     print("Running Reward: " + str(running_reward) + " at Episode " + str(episode_count))
 
-                self.explorationRate = self.MIN_EXPLORATION_RATE + (self.MAX_EXPLORATION_RATE - self.MAX_EXPLORATION_RATE) * np.exp(-self.decayRate * episode_count)
+                self.explorationRate = self.MIN_EXPLORATION_RATE + (self.MAX_EXPLORATION_RATE - self.MIN_EXPLORATION_RATE) * np.exp(-self.decayRate * episode_count)
+                # print(str(self.explorationRate))
+                # self.explorationRate -= self.EPSILON_INTERVAL / self.EPSILON_GREEDY_FRAMES
+                # self.explorationRate = max(self.explorationRate, self.MIN_EXPLORATION_RATE)
 
                 if done:
                     break
