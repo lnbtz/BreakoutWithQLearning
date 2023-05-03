@@ -86,7 +86,7 @@ class DeepQLearning:
             episode_count += 1
 
             # Durchschnittlicher reward der letzten 100 Episoden
-            if running_reward > 20:
+            if running_reward > self.solutionRunningReward:
                 print("Found Solution after " + str(episode_count) + " Episodes")
                 break
 
