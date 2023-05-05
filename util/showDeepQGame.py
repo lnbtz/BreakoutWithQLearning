@@ -14,7 +14,7 @@ def showQGame(env, qNet):
 
     pygame.init()
     display = pygame.display.set_mode((width, height))
-    pygame.display.set_caption('Breakout - Q-Agent')
+    pygame.display.set_caption(env.game + ' - Q-Agent')
     clock = pygame.time.Clock()
 
     total_rewards = 0

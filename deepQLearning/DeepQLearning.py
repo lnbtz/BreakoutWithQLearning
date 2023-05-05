@@ -1,4 +1,5 @@
 import random
+import os
 
 import numpy as np
 from tensorflow import keras
@@ -9,9 +10,9 @@ from util.networkInitializer import init_q_net
 class DeepQLearning:
     BACKPROPAGATION_RATE = 4
     REPLAY_MEMORY_LENGTH = 50_000
-    MIN_REPLAY_SIZE = 1000
-    BATCH_SIZE = 64 * 2
-    COPY_STEP_LIMIT = 100
+    MIN_REPLAY_SIZE = 10
+    BATCH_SIZE = 100
+    COPY_STEP_LIMIT = 10000
     MAX_EXPLORATION_RATE = 1
     EXPLORATION_FRAMES = 50_000
     MAX_STEPS_PER_EPISODE = 10_000
@@ -27,7 +28,11 @@ class DeepQLearning:
         self.minExplorationRate = min_exploration_rate
         self.discountFactor = discount_factor
         self.decayRate = decay_rate
+
         self.savingPath = savingPath
+        if os.path.exists(savingPath + "/log"):
+            os.remove(savingPath + "/log")
+
         self.solutionRunningReward = solutionRunningReward
         self.optimizer = keras.optimizers.Adam(learning_rate=learning_rate, clipnorm=1.0)
 
@@ -70,9 +75,11 @@ class DeepQLearning:
 
                 if total_steps % self.COPY_STEP_LIMIT == 0:
                     self.qNet.set_weights(main_q_net.get_weights())
-                    print("Running Reward: " + str(running_reward) + " at Episode " + str(episode_count) + " with Epsilon " + str(self.explorationRate))
+                    print("Running Reward: " + str(running_reward) + " at Step " + str(total_steps) + " with Epsilon " + str(self.explorationRate))
+                    self.log(running_reward, total_steps)
 
-                self.explorationRate = self.minExplorationRate + (self.MAX_EXPLORATION_RATE - self.minExplorationRate) * np.exp(-self.decayRate * episode_count)
+                # self.explorationRate = self.minExplorationRate + (self.MAX_EXPLORATION_RATE - self.minExplorationRate) * np.exp(-self.decayRate * episode_count)
+                self.explorationRate = max(self.minExplorationRate, self.explorationRate * self.decayRate)
 
                 if done:
                     break
@@ -119,3 +126,7 @@ class DeepQLearning:
 
         grads = tape.gradient(loss, main_q_net.trainable_variables)
         self.optimizer.apply_gradients(zip(grads, main_q_net.trainable_variables))
+
+    def log(self, running_reward, total_steps):
+        with open(self.savingPath + "/log", "a") as log:
+            log.write(str(total_steps) + " " + str(running_reward) + " " + str(self.explorationRate) +"\n")
