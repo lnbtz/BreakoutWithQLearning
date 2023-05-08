@@ -1,6 +1,7 @@
 from util.Config import Config
 from util.options import *
 from get_project_root import root_path
+from environment.observationTransformers.StackedGreyscaleObservationTransformer import StackedGreyscaleObservationTransformer
 
 BASE_PATH = base_path = root_path(ignore_cwd=False) + "/qNets/"
 
@@ -38,5 +39,7 @@ starter = Config(game,
                  discount_factor,
                  solution_reward,
                  decay_rate,
-                 BASE_PATH + folder_name)
+                 BASE_PATH + folder_name,
+                 obs_transformer
+                 )
 starter.doRun()

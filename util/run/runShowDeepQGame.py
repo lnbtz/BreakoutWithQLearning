@@ -11,6 +11,6 @@ file_name = "test"
 # qNet = QNet.loadFromFile(qNets_path + file_name)
 # env = Environment(True, OPT_ENV_RAM, StandardObservationTransformer())
 
-qNet = QNet.loadFromFile(qNets_path + "cartpole_test")
+qNet = QNet.loadFromFile(qNets_path + "cartpole")
 env = Environment(OPT_GAME_CARTPOLE, False, OPT_ENV_RAM, StandardObservationTransformer())
 showQGame(env, qNet)
