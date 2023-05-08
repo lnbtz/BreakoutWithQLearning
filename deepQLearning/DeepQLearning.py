@@ -1,5 +1,6 @@
 import random
 import os
+import time
 
 import numpy as np
 from tensorflow import keras
@@ -19,7 +20,8 @@ class DeepQLearning:
 
     loss_function = keras.losses.Huber()
 
-    def __init__(self, environment, qNet, learning_rate, exploration_rate, min_exploration_rate, discount_factor, solutionRunningReward, decay_rate,
+    def __init__(self, environment, qNet, learning_rate, exploration_rate, min_exploration_rate, discount_factor,
+                 solutionRunningReward, decay_rate,
                  savingPath):
         self.environment = environment
         self.qNet = qNet
@@ -59,14 +61,18 @@ class DeepQLearning:
                     reshaped_state = state.reshape([1, state.shape[0]])
                     predicted_q_values = main_q_net(tf.convert_to_tensor(reshaped_state)).numpy().flatten()
                     action = predicted_q_values.argmax()
-
+                startTime = time.time_ns()
                 new_state, reward, done = self.environment.step(action)
-
+                endTime = time.time_ns()
+                print("nanosecods for step method: " + str((endTime - startTime) / 1000000))
                 replay_memory.append([state, action, reward, new_state, done])
                 episode_reward += reward
 
                 if total_steps % self.BACKPROPAGATION_RATE == 0:
+                    startTime = time.time_ns()
                     self.train(replay_memory, main_q_net)
+                    endTime = time.time_ns()
+                    print("nanoseconds for train method: " + str((endTime - startTime) / 1000000))
 
                 state = new_state
 
@@ -75,7 +81,8 @@ class DeepQLearning:
 
                 if total_steps % self.COPY_STEP_LIMIT == 0:
                     self.qNet.set_weights(main_q_net.get_weights())
-                    print("Running Reward: " + str(running_reward) + " at Step " + str(total_steps) + " with Epsilon " + str(self.explorationRate))
+                    print("Running Reward: " + str(running_reward) + " at Step " + str(
+                        total_steps) + " with Epsilon " + str(self.explorationRate))
                     self.log(running_reward, total_steps)
 
                 # self.explorationRate = self.minExplorationRate + (self.MAX_EXPLORATION_RATE - self.minExplorationRate) * np.exp(-self.decayRate * episode_count)
@@ -114,7 +121,8 @@ class DeepQLearning:
         actions = np.array([replay_memory[i][1] for i in random_indices])
 
         Y = []
-        max_future_rewards = ((rewards * self.discountFactor * tf.reduce_max(target_q_values, axis=1)) * (1 - dones) - dones).numpy()
+        max_future_rewards = ((rewards * self.discountFactor * tf.reduce_max(target_q_values, axis=1)) * (
+                    1 - dones) - dones).numpy()
         for index in range(self.BATCH_SIZE):
             q_values = predicted_q_values[index]
             q_values[actions[index]] = max_future_rewards[index]
@@ -129,4 +137,4 @@ class DeepQLearning:
 
     def log(self, running_reward, total_steps):
         with open(self.savingPath + "/log", "a") as log:
-            log.write(str(total_steps) + " " + str(running_reward) + " " + str(self.explorationRate) +"\n")
+            log.write(str(total_steps) + " " + str(running_reward) + " " + str(self.explorationRate) + "\n")

@@ -1,3 +1,4 @@
+import time
 from collections import deque
 import numpy as np
 from util.imageProcessing import *
@@ -17,19 +18,24 @@ class StackedGreyscaleObservationTransformer:
         self.stack.append(black_array_transformed)
 
     def _transform(self, observation):
+        startTime = time.time_ns
+        img = cut_img(observation)
+        endTime = time.time_ns()
+        print( "millisecs cut_img: " + str((endTime - startTime) / 1000000000))
         return compress_image(cut_image(observation))
 
     def transform(self, observation):
         transformed_observation = self._transform(observation)
         self.stack.append(transformed_observation)
-        result = np.zeros((transformed_observation.shape[0], transformed_observation.shape[1], 4))
+        return np.stack(self.stack, axis=-1)
+        # result = np.zeros((transformed_observation.shape[0], transformed_observation.shape[1], 4))
 
-        for i in range(transformed_observation.shape[0]):
-            for j in range(transformed_observation.shape[1]):
-                for img_index in range(len(self.stack)):
-                    result[i][j][img_index] = self.stack[img_index][i][j]
+        # for i in range(transformed_observation.shape[0]):
+        #     for j in range(transformed_observation.shape[1]):
+        #         for img_index in range(len(self.stack)):
+        #             result[i][j][img_index] = self.stack[img_index][i][j]
 
-        return result
+        # return result
 
 
 if __name__=="__main__":
