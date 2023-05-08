@@ -46,7 +46,7 @@ class DeepQLearning:
         episode_count = 1
 
         while True:
-            state, _ = self.environment.reset()
+            state = self.environment.reset()
             episode_reward = 0
 
             # No infinite Loops
