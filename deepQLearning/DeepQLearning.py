@@ -15,7 +15,7 @@ class DeepQLearning:
     BATCH_SIZE = 100
     COPY_STEP_LIMIT = 1000
     MAX_EXPLORATION_RATE = 1
-    EXPLORATION_FRAMES = 50_000
+    EXPLORATION_FRAMES = 0
     MAX_STEPS_PER_EPISODE = 10_000
 
     loss_function = keras.losses.Huber()
@@ -59,6 +59,8 @@ class DeepQLearning:
                     action = self.environment.env.action_space.sample()
                 else:
                     reshaped_state = state.reshape([1, state.shape[0]])
+                    #reshaped_state = np.zeros(1)
+                    #reshaped_state[0] = state
                     predicted_q_values = main_q_net(tf.convert_to_tensor(reshaped_state)).numpy().flatten()
                     action = predicted_q_values.argmax()
                 startTime = time.time_ns()
