@@ -18,10 +18,6 @@ class StackedGreyscaleObservationTransformer:
         self.stack.append(black_array_transformed)
 
     def _transform(self, observation):
-        startTime = time.time_ns
-        img = cut_img(observation)
-        endTime = time.time_ns()
-        print( "millisecs cut_img: " + str((endTime - startTime) / 1000000000))
         return compress_image(cut_image(observation))
 
     def transform(self, observation):

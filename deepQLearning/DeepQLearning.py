@@ -64,7 +64,7 @@ class DeepQLearning:
                 startTime = time.time_ns()
                 new_state, reward, done = self.environment.step(action)
                 endTime = time.time_ns()
-                print("nanosecods for step method: " + str((endTime - startTime) / 1000000))
+                #print("nanosecods for step method: " + str((endTime - startTime) / 1000000))
                 replay_memory.append([state, action, reward, new_state, done])
                 episode_reward += reward
 
@@ -72,7 +72,7 @@ class DeepQLearning:
                     startTime = time.time_ns()
                     self.train(replay_memory, main_q_net)
                     endTime = time.time_ns()
-                    print("nanoseconds for train method: " + str((endTime - startTime) / 1000000))
+                    #print("nanoseconds for train method: " + str((endTime - startTime) / 1000000))
 
                 state = new_state
 
