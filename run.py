@@ -1,7 +1,8 @@
 from util.Config import Config
 from util.options import *
 from get_project_root import root_path
-from environment.observationTransformers.StackedGreyscaleObservationTransformer import StackedGreyscaleObservationTransformer
+from environment.observationTransformers.StackedGreyscaleObservationTransformer import \
+    StackedGreyscaleObservationTransformer
 
 BASE_PATH = base_path = root_path(ignore_cwd=False) + "/qNets/"
 
@@ -11,12 +12,14 @@ one_life = True
 OBS = OPT_ENV_GREYSCALE
 learning_rate = 0.00025
 exploration_rate = 1
+max_exploration_rate = 1
 min_exploration_rate = 0.1
+exploration_rate_interval = (max_exploration_rate - min_exploration_rate)
 discount_factor = 0.99
 solution_reward = 10
 decay_rate = 0.999999
 folder_name = "breakout"
-obs_transformer = StackedGreyscaleObservationTransformer((210, 160), 2, 2)
+obs_transformer = StackedGreyscaleObservationTransformer(84, 84, (210, 160))
 
 # cartpole
 # game = OPT_GAME_CARTPOLE

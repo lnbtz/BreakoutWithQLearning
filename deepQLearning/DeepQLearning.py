@@ -1,22 +1,25 @@
-import random
 import os
-import time
+import random
 
 import numpy as np
-from tensorflow import keras
 import tensorflow as tf
+from tensorflow import keras
+
 from util.networkInitializer import init_q_net
 
 
 class DeepQLearning:
     BACKPROPAGATION_RATE = 4
-    REPLAY_MEMORY_LENGTH = 50_000
-    MIN_REPLAY_SIZE = 10
-    BATCH_SIZE = 100
-    COPY_STEP_LIMIT = 1000
+    REPLAY_MEMORY_LENGTH = 100000
+    BATCH_SIZE = 32
+    COPY_STEP_LIMIT = 10000
     MAX_EXPLORATION_RATE = 1
-    EXPLORATION_FRAMES = 50_000
-    MAX_STEPS_PER_EPISODE = 10_000
+    EXPLORATION_FRAMES = 50000
+    MAX_STEPS_PER_EPISODE = 10000
+    epsilon_greedy_frames = 1000000.0
+    max_exploration_rate = 1
+    min_exploration_rate = 0.1
+    exploration_rate_interval = (max_exploration_rate - min_exploration_rate)
 
     loss_function = keras.losses.Huber()
 
@@ -56,23 +59,20 @@ class DeepQLearning:
                 total_steps += 1
 
                 if total_steps < self.EXPLORATION_FRAMES or random.uniform(0, 1) <= self.explorationRate:
-                    action = self.environment.env.action_space.sample()
+                    action = np.random.choice(4)
                 else:
-                    reshaped_state = state.reshape([1, state.shape[0]])
+                    reshaped_state = np.reshape(state, (-1, 84, 84, 4))
                     predicted_q_values = main_q_net(tf.convert_to_tensor(reshaped_state)).numpy().flatten()
                     action = predicted_q_values.argmax()
-                startTime = time.time_ns()
                 new_state, reward, done = self.environment.step(action)
-                endTime = time.time_ns()
-                print("nanosecods for step method: " + str((endTime - startTime) / 1000000))
                 replay_memory.append([state, action, reward, new_state, done])
                 episode_reward += reward
 
+                self.explorationRate -= self.exploration_rate_interval / self.epsilon_greedy_frames
+                self.explorationRate = max(self.explorationRate, self.minExplorationRate)
+
                 if total_steps % self.BACKPROPAGATION_RATE == 0:
-                    startTime = time.time_ns()
                     self.train(replay_memory, main_q_net)
-                    endTime = time.time_ns()
-                    print("nanoseconds for train method: " + str((endTime - startTime) / 1000000))
 
                 state = new_state
 
@@ -86,7 +86,7 @@ class DeepQLearning:
                     self.log(running_reward, total_steps)
 
                 # self.explorationRate = self.minExplorationRate + (self.MAX_EXPLORATION_RATE - self.minExplorationRate) * np.exp(-self.decayRate * episode_count)
-                self.explorationRate = max(self.minExplorationRate, self.explorationRate * self.decayRate)
+                # self.explorationRate = max(self.minExplorationRate, self.explorationRate * self.decayRate)
 
                 if done:
                     break
@@ -108,7 +108,7 @@ class DeepQLearning:
         keras.saving.save_model(self.qNet, self.savingPath)
 
     def train(self, replay_memory, main_q_net):
-        if len(replay_memory) < self.MIN_REPLAY_SIZE:
+        if len(replay_memory) < self.BATCH_SIZE:
             return
 
         random_indices = np.random.choice(range(len(replay_memory)), size=self.BATCH_SIZE)
@@ -122,7 +122,7 @@ class DeepQLearning:
 
         Y = []
         max_future_rewards = ((rewards * self.discountFactor * tf.reduce_max(target_q_values, axis=1)) * (
-                    1 - dones) - dones).numpy()
+                1 - dones) - dones).numpy()
         for index in range(self.BATCH_SIZE):
             q_values = predicted_q_values[index]
             q_values[actions[index]] = max_future_rewards[index]

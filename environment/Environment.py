@@ -19,14 +19,12 @@ class Environment:
 
     def step(self, action):
         observation, reward, terminated, truncated, info = self.env.step(action)
-
         if self.onlyOneLife and info['lives'] < 5:
             terminated = True
-
         return self.observationTransformer.transform(observation), reward, terminated
 
     def reset(self):
-        obs, info = self.env.reset()
+        obs = self.env.reset()
         return self.observationTransformer.transform(obs)
 
     def close(self):

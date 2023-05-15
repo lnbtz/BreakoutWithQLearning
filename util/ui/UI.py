@@ -1,5 +1,7 @@
 import tkinter as tk
+from tkinter import ttk
 
+from deepQLearning.DeepQLearning import DeepQLearning
 from util import Config
 from util.options import *
 
@@ -14,10 +16,18 @@ class UI:
         self.number_of_games = 0
 
     def start(self):
+
         # main window
         window = tk.Tk()
         window.title("Start Up Configuration")
-
+        label = label = tk.Label(
+            text="Hello, Tkinter",
+            fg="white",
+            bg="black",
+            width=10,
+            height=10
+        )
+        label.pack()
         # life switch
         life_label = tk.Label(text="Life Switch")
         life_label.pack()
@@ -54,22 +64,17 @@ class UI:
         drop = tk.OptionMenu(window, clicked, *options)
         drop.pack()
 
-        alpha_label = tk.Label(text="Learning Rate")
-        alpha_entry = tk.Entry()
-        alpha_label.pack()
-        alpha_entry.pack()
-        epsilon_label = tk.Label(text="Exploration Rate")
-        epsilon_entry = tk.Entry()
-        epsilon_label.pack()
-        epsilon_entry.pack()
-        gamma_label = tk.Label(text="Discount Factor")
-        gamma_entry = tk.Entry()
-        gamma_label.pack()
-        gamma_entry.pack()
-        number_of_games_label = tk.Label(text="Number of Games")
-        number_of_games_entry = tk.Entry()
-        number_of_games_label.pack()
-        number_of_games_entry.pack()
+        alpha_entry = self.add_label("Learning Rate")
+        epsilon_entry = self.add_label("Exploration Rate")
+        gamma_entry = self.add_label("Discount Factor")
+        number_of_games_entry = self.add_label("Number of Games")
+        backpropagation_rate_entry = self.add_label("Backpropagation Rate")
+        replay_memory_length_entry = self.add_label("Replay Memory Length")
+        min_replay_size_entry = self.add_label("Min Replay Size")
+        batch_size_entry = self.add_label("Batch Size")
+        copy_step_limit_entry = self.add_label("Copy Step Limit")
+        max_learning_rate_entry = self.add_label("Max Learning Rate")
+        min_learning_rate_entry = self.add_label("Min Learning Rate")
         button = tk.Button(text="submit")
 
         def submit(event):
@@ -87,3 +92,11 @@ class UI:
         button.pack()
         button.bind("<Button-1>", submit)
         window.mainloop()
+
+    @staticmethod
+    def add_label(text):
+        label = tk.Label(text=text)
+        label_entry = tk.Entry()
+        label.pack()
+        label_entry.pack()
+        return label_entry
