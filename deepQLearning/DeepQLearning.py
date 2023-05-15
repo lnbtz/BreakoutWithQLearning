@@ -62,6 +62,7 @@ class DeepQLearning:
                     action = np.random.choice(4)
                 else:
                     reshaped_state = np.reshape(state, (-1, 84, 84, 4))
+                    reshaped_state = reshaped_state / 255.0
                     predicted_q_values = main_q_net(tf.convert_to_tensor(reshaped_state)).numpy().flatten()
                     action = predicted_q_values.argmax()
                 new_state, reward, done = self.environment.step(action)
@@ -113,9 +114,11 @@ class DeepQLearning:
 
         random_indices = np.random.choice(range(len(replay_memory)), size=self.BATCH_SIZE)
         states = np.array([replay_memory[i][0] for i in random_indices])
-        predicted_q_values = main_q_net(tf.convert_to_tensor(states)).numpy()
+        normalized_states = states / 255.0
+        predicted_q_values = main_q_net(tf.convert_to_tensor(normalized_states)).numpy()
         new_states = np.array([replay_memory[i][3] for i in random_indices])
-        target_q_values = self.qNet(tf.convert_to_tensor(new_states)).numpy()
+        normalized_new_states = new_states / 255.0
+        target_q_values = self.qNet(tf.convert_to_tensor(normalized_new_states)).numpy()
         rewards = np.array([replay_memory[i][2] for i in random_indices])
         dones = np.array([float(replay_memory[i][4]) for i in random_indices])
         actions = np.array([replay_memory[i][1] for i in random_indices])
@@ -129,7 +132,7 @@ class DeepQLearning:
             Y.append(q_values)
 
         with tf.GradientTape() as tape:
-            predicted_q_values = main_q_net(states)
+            predicted_q_values = main_q_net(normalized_states)
             loss = self.loss_function(Y, predicted_q_values)
 
         grads = tape.gradient(loss, main_q_net.trainable_variables)

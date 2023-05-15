@@ -68,8 +68,9 @@ if __name__ == "__main__":
     for i in range(4):
         observation, _, _ = env.step(1)
 
-
-
+    reshaped_state = np.reshape(observation, (-1, 84, 84, 4))
+    reshaped_state = reshaped_state / 255.0
+    print(reshaped_state)
     # show_img(observation)
     #
     # cut_img = cut_image(observation)

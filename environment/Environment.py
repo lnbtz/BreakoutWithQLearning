@@ -24,7 +24,7 @@ class Environment:
         return self.observationTransformer.transform(observation), reward, terminated
 
     def reset(self):
-        obs = self.env.reset()
+        obs, _ = self.env.reset()
         return self.observationTransformer.transform(obs)
 
     def close(self):
