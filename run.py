@@ -2,8 +2,9 @@ from util.Config import Config
 from util.options import *
 from get_project_root import root_path
 from environment.observationTransformers.StackedGreyscaleObservationTransformer import StackedGreyscaleObservationTransformer
+import os
 
-BASE_PATH = base_path = root_path(ignore_cwd=False) + "/qNets/"
+BASE_PATH = base_path = os.path.join(root_path(ignore_cwd=False), "qNets")
 
 # breakout
 game = OPT_GAME_BREAKOUT
@@ -40,7 +41,7 @@ starter = Config(game,
                  discount_factor,
                  solution_reward,
                  decay_rate,
-                 BASE_PATH + folder_name,
+                 os.path.join(BASE_PATH, folder_name),
                  obs_transformer
                  )
 starter.doRun()

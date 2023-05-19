@@ -10,13 +10,14 @@ from util.networkInitializer import init_q_net
 
 class DeepQLearning:
     BACKPROPAGATION_RATE = 4
-    REPLAY_MEMORY_LENGTH = 50_000
+    REPLAY_MEMORY_LENGTH = 30_000
     MIN_REPLAY_SIZE = 10
     BATCH_SIZE = 100
     COPY_STEP_LIMIT = 1000
     MAX_EXPLORATION_RATE = 1
     EXPLORATION_FRAMES = 50_000
     MAX_STEPS_PER_EPISODE = 10_000
+    EPSILON_GREEDY_FRAMES = 1_000_000.0
 
     loss_function = keras.losses.Huber()
 
@@ -32,8 +33,8 @@ class DeepQLearning:
         self.decayRate = decay_rate
 
         self.savingPath = savingPath
-        if os.path.exists(savingPath + "/log"):
-            os.remove(savingPath + "/log")
+        if os.path.exists(os.path.join(savingPath, "log")):
+            os.remove(os.path.join(savingPath, "log"))
 
         self.solutionRunningReward = solutionRunningReward
         self.optimizer = keras.optimizers.Adam(learning_rate=learning_rate, clipnorm=1.0)
@@ -86,7 +87,9 @@ class DeepQLearning:
                     self.log(running_reward, total_steps)
 
                 # self.explorationRate = self.minExplorationRate + (self.MAX_EXPLORATION_RATE - self.minExplorationRate) * np.exp(-self.decayRate * episode_count)
-                self.explorationRate = max(self.minExplorationRate, self.explorationRate * self.decayRate)
+                # self.explorationRate = max(self.minExplorationRate, self.explorationRate * self.decayRate)
+                self.explorationRate = (self.MAX_EXPLORATION_RATE - self.minExplorationRate) / self.EPSILON_GREEDY_FRAMES
+                self.explorationRate = max(self.explorationRate, self.minExplorationRate)
 
                 if done:
                     break
@@ -136,5 +139,5 @@ class DeepQLearning:
         self.optimizer.apply_gradients(zip(grads, main_q_net.trainable_variables))
 
     def log(self, running_reward, total_steps):
-        with open(self.savingPath + "/log", "a") as log:
+        with open(os.path.join(self.savingPath, "log"), "a") as log:
             log.write(str(total_steps) + " " + str(running_reward) + " " + str(self.explorationRate) + "\n")

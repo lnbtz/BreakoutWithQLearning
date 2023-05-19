@@ -1,3 +1,5 @@
+import os.path
+
 from deepQLearning.DeepQLearning import DeepQLearning
 from environment.Environment import Environment
 from environment.observationTransformers.StandardObservationTransformer import StandardObservationTransformer
@@ -50,6 +52,6 @@ class Config:
     @staticmethod
     def _initSavingPath(savingPath):
         if savingPath is None:
-            return root_path(ignore_cwd=False) + '/qNets/' + "default"
+            return os.path.join(root_path(ignore_cwd=False), "qNets", "default")
         else:
             return savingPath
