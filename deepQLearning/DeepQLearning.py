@@ -1,6 +1,5 @@
 import random
 import os
-import time
 
 import numpy as np
 from tensorflow import keras
@@ -121,11 +120,12 @@ class DeepQLearning:
         actions = np.array([replay_memory[i][1] for i in random_indices])
 
         Y = []
-        max_future_rewards = ((rewards * self.discountFactor * tf.reduce_max(target_q_values, axis=1)) * (
-                    1 - dones) - dones).numpy()
+        expected_q_value = rewards + self.discountFactor * tf.reduce_max(target_q_values, axis=1)
+        expected_q_value = (expected_q_value * (1 - dones) - dones).numpy()
+
         for index in range(self.BATCH_SIZE):
             q_values = predicted_q_values[index]
-            q_values[actions[index]] = max_future_rewards[index]
+            q_values[actions[index]] = expected_q_value[index]
             Y.append(q_values)
 
         with tf.GradientTape() as tape:
