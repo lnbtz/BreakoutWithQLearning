@@ -17,7 +17,7 @@ discount_factor = 0.99
 solution_reward = 10
 decay_rate = 0.999999
 folder_name = "breakout"
-obs_transformer = StackedGreyscaleObservationTransformer((210, 160), 2, 2)
+obs_transformer = StackedGreyscaleObservationTransformer()
 
 # cartpole
 # game = OPT_GAME_CARTPOLE

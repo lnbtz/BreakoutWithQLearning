@@ -11,9 +11,9 @@ from util.networkInitializer import init_q_net
 class DeepQLearning:
     BACKPROPAGATION_RATE = 4
     REPLAY_MEMORY_LENGTH = 30_000
-    MIN_REPLAY_SIZE = 10
-    BATCH_SIZE = 100
-    COPY_STEP_LIMIT = 1000
+    MIN_REPLAY_SIZE = 32
+    BATCH_SIZE = 32
+    COPY_STEP_LIMIT = 10000
     MAX_EXPLORATION_RATE = 1
     EXPLORATION_FRAMES = 50_000
     MAX_STEPS_PER_EPISODE = 10_000
@@ -59,21 +59,18 @@ class DeepQLearning:
                 if total_steps < self.EXPLORATION_FRAMES or random.uniform(0, 1) <= self.explorationRate:
                     action = self.environment.env.action_space.sample()
                 else:
-                    reshaped_state = state.reshape([1, state.shape[0]])
-                    predicted_q_values = main_q_net(tf.convert_to_tensor(reshaped_state)).numpy().flatten()
-                    action = predicted_q_values.argmax()
-                startTime = time.time_ns()
+                    reshaped_state = tf.expand_dims(state, 0)
+                    predicted_q_values = main_q_net(tf.convert_to_tensor(reshaped_state))
+                    action = tf.argmax(predicted_q_values[0]).numpy()
+
                 new_state, reward, done = self.environment.step(action)
-                endTime = time.time_ns()
-                print("nanosecods for step method: " + str((endTime - startTime) / 1000000))
+
+
                 replay_memory.append([state, action, reward, new_state, done])
                 episode_reward += reward
 
                 if total_steps % self.BACKPROPAGATION_RATE == 0:
-                    startTime = time.time_ns()
                     self.train(replay_memory, main_q_net)
-                    endTime = time.time_ns()
-                    print("nanoseconds for train method: " + str((endTime - startTime) / 1000000))
 
                 state = new_state
 
@@ -88,7 +85,7 @@ class DeepQLearning:
 
                 # self.explorationRate = self.minExplorationRate + (self.MAX_EXPLORATION_RATE - self.minExplorationRate) * np.exp(-self.decayRate * episode_count)
                 # self.explorationRate = max(self.minExplorationRate, self.explorationRate * self.decayRate)
-                self.explorationRate = (self.MAX_EXPLORATION_RATE - self.minExplorationRate) / self.EPSILON_GREEDY_FRAMES
+                self.explorationRate -= (self.MAX_EXPLORATION_RATE - self.minExplorationRate) / self.EPSILON_GREEDY_FRAMES
                 self.explorationRate = max(self.explorationRate, self.minExplorationRate)
 
                 if done:
