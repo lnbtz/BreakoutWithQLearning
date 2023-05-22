@@ -59,7 +59,8 @@ class DeepQLearning:
                     action = self.environment.env.action_space.sample()
                 else:
                     reshaped_state = tf.expand_dims(state, 0)
-                    predicted_q_values = main_q_net(tf.convert_to_tensor(reshaped_state), training=False)
+                    reshaped_state = tf.convert_to_tensor(reshaped_state)
+                    predicted_q_values = main_q_net(reshaped_state, training=False)
                     action = tf.argmax(predicted_q_values[0]).numpy()
 
                 new_state, reward, done = self.environment.step(action)
