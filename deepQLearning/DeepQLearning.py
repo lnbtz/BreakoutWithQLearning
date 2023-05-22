@@ -113,7 +113,7 @@ class DeepQLearning:
         states = np.array([replay_memory[i][0] for i in random_indices])
         predicted_q_values = main_q_net(states / 255).numpy()
         new_states = np.array([replay_memory[i][3] for i in random_indices])
-        target_q_values = self.qNet(tf.convert_to_tensor(new_states)).numpy()
+        target_q_values = self.qNet(new_states / 255).numpy()
         rewards = np.array([replay_memory[i][2] for i in random_indices])
         dones = np.array([float(replay_memory[i][4]) for i in random_indices])
         actions = np.array([replay_memory[i][1] for i in random_indices])
