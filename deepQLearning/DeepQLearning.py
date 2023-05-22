@@ -65,7 +65,6 @@ class DeepQLearning:
 
                 new_state, reward, done = self.environment.step(action)
 
-
                 replay_memory.append([state, action, reward, new_state, done])
                 episode_reward += reward
 
