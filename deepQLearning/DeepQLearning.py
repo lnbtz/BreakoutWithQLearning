@@ -45,6 +45,7 @@ class DeepQLearning:
         running_reward = 0
         total_steps = 0
         episode_count = 1
+        best_running_reward = 0
 
         while True:
             state = self.environment.reset()
@@ -80,6 +81,10 @@ class DeepQLearning:
                     print("Running Reward: " + str(running_reward) + " at Step " + str(
                         total_steps) + " with Epsilon " + str(self.explorationRate))
                     self.log(running_reward, total_steps)
+                    if running_reward > best_running_reward:
+                        best_running_reward = running_reward
+                        keras.saving.save_model(self.qNet, self.savingPath)
+                        print("New Highscore! Saving Net")
 
                 # self.explorationRate = self.minExplorationRate + (self.MAX_EXPLORATION_RATE - self.minExplorationRate) * np.exp(-self.decayRate * episode_count)
                 # self.explorationRate = max(self.minExplorationRate, self.explorationRate * self.decayRate)
@@ -123,11 +128,6 @@ class DeepQLearning:
         expected_q_value = (expected_q_value * (1 - dones) - dones).numpy()
 
         masks = tf.one_hot(actions, 4)
-
-        # for index in range(self.BATCH_SIZE):
-        #     q_values = predicted_q_values[index]
-        #     q_values[actions[index]] = expected_q_value[index]
-        #     Y.append(q_values)
 
         with tf.GradientTape() as tape:
             predicted_q_values = main_q_net(states / 255)

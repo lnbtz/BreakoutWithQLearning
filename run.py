@@ -2,6 +2,7 @@ from util.Config import Config
 from util.options import *
 from get_project_root import root_path
 from environment.observationTransformers.StackedGreyscaleObservationTransformer import StackedGreyscaleObservationTransformer
+from environment.observationTransformers.StandardObservationTransformer import StandardObservationTransformer
 import os
 
 BASE_PATH = base_path = os.path.join(root_path(ignore_cwd=False), "qNets")
@@ -30,6 +31,7 @@ obs_transformer = StackedGreyscaleObservationTransformer()
 # solution_reward = 500
 # decay_rate = 0.99999
 # folder_name = "cartpole"
+# obs_transformer = StandardObservationTransformer()
 
 
 starter = Config(game,
