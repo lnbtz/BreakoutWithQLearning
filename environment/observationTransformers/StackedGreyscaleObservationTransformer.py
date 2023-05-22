@@ -20,7 +20,7 @@ class StackedGreyscaleObservationTransformer:
         stacked = np.stack(self.stack, axis=-1).astype(np.uint8)
         transformed_state = tf.image.resize(stacked, self.TARGET_SHAPE, method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
 
-        self._show_state(transformed_state)
+        # self._show_state(transformed_state)
         return transformed_state
 
     def _show_state(self, transformedState):

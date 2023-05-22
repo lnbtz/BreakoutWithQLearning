@@ -10,11 +10,10 @@ from util.networkInitializer import init_q_net
 class DeepQLearning:
     BACKPROPAGATION_RATE = 4
     REPLAY_MEMORY_LENGTH = 30_000
-    MIN_REPLAY_SIZE = 32
     BATCH_SIZE = 32
-    COPY_STEP_LIMIT = 10000
+    COPY_STEP_LIMIT = 10_000
     MAX_EXPLORATION_RATE = 1
-    EXPLORATION_FRAMES = 30_000
+    EXPLORATION_FRAMES = REPLAY_MEMORY_LENGTH
     MAX_STEPS_PER_EPISODE = 10_000
     EPSILON_GREEDY_FRAMES = 1_000_000.0
 
@@ -58,8 +57,8 @@ class DeepQLearning:
                 if total_steps < self.EXPLORATION_FRAMES or random.uniform(0, 1) <= self.explorationRate:
                     action = self.environment.env.action_space.sample()
                 else:
-                    reshaped_state = tf.expand_dims(state, 0)
-                    reshaped_state = tf.convert_to_tensor(reshaped_state)
+                    reshaped_state = state / 255
+                    reshaped_state = tf.expand_dims(reshaped_state, 0)
                     predicted_q_values = main_q_net(reshaped_state, training=False)
                     action = tf.argmax(predicted_q_values[0]).numpy()
 
@@ -107,12 +106,12 @@ class DeepQLearning:
         keras.saving.save_model(self.qNet, self.savingPath)
 
     def train(self, replay_memory, main_q_net):
-        if len(replay_memory) < self.MIN_REPLAY_SIZE:
+        if len(replay_memory) < self.BATCH_SIZE:
             return
 
         random_indices = np.random.choice(range(len(replay_memory)), size=self.BATCH_SIZE)
         states = np.array([replay_memory[i][0] for i in random_indices])
-        predicted_q_values = main_q_net(tf.convert_to_tensor(states)).numpy()
+        predicted_q_values = main_q_net(states / 255).numpy()
         new_states = np.array([replay_memory[i][3] for i in random_indices])
         target_q_values = self.qNet(tf.convert_to_tensor(new_states)).numpy()
         rewards = np.array([replay_memory[i][2] for i in random_indices])
@@ -123,14 +122,17 @@ class DeepQLearning:
         expected_q_value = rewards + self.discountFactor * tf.reduce_max(target_q_values, axis=1)
         expected_q_value = (expected_q_value * (1 - dones) - dones).numpy()
 
-        for index in range(self.BATCH_SIZE):
-            q_values = predicted_q_values[index]
-            q_values[actions[index]] = expected_q_value[index]
-            Y.append(q_values)
+        masks = tf.one_hot(actions, 4)
+
+        # for index in range(self.BATCH_SIZE):
+        #     q_values = predicted_q_values[index]
+        #     q_values[actions[index]] = expected_q_value[index]
+        #     Y.append(q_values)
 
         with tf.GradientTape() as tape:
-            predicted_q_values = main_q_net(states)
-            loss = self.loss_function(Y, predicted_q_values)
+            predicted_q_values = main_q_net(states / 255)
+            q_action = tf.reduce_sum(tf.multiply(predicted_q_values, masks), axis=1)
+            loss = self.loss_function(expected_q_value, q_action)
 
         grads = tape.gradient(loss, main_q_net.trainable_variables)
         self.optimizer.apply_gradients(zip(grads, main_q_net.trainable_variables))
