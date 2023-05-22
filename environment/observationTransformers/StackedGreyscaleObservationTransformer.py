@@ -17,9 +17,10 @@ class StackedGreyscaleObservationTransformer:
 
     def transform(self, observation):
         self.stack.append(observation[50:200])
-        stacked = tf.stack(self.stack, axis=-1)
-        transformed_state = tf.keras.preprocessing.image.smart_resize(stacked, self.TARGET_SHAPE, interpolation='bilinear') / 255
-        # self._show_state(transformed_state)
+        stacked = np.stack(self.stack, axis=-1).astype(np.uint8)
+        transformed_state = tf.image.resize(stacked, self.TARGET_SHAPE, method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
+
+        self._show_state(transformed_state)
         return transformed_state
 
     def _show_state(self, transformedState):
