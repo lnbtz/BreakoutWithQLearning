@@ -14,7 +14,7 @@ class DeepQLearning:
     BATCH_SIZE = 32
     COPY_STEP_LIMIT = 10000
     MAX_EXPLORATION_RATE = 1
-    EXPLORATION_FRAMES = 50_000
+    EXPLORATION_FRAMES = 30_000
     MAX_STEPS_PER_EPISODE = 10_000
     EPSILON_GREEDY_FRAMES = 1_000_000.0
 
@@ -59,7 +59,7 @@ class DeepQLearning:
                     action = self.environment.env.action_space.sample()
                 else:
                     reshaped_state = tf.expand_dims(state, 0)
-                    predicted_q_values = main_q_net(tf.convert_to_tensor(reshaped_state))
+                    predicted_q_values = main_q_net(tf.convert_to_tensor(reshaped_state), training=False)
                     action = tf.argmax(predicted_q_values[0]).numpy()
 
                 new_state, reward, done = self.environment.step(action)
