@@ -8,33 +8,46 @@ from util.networkInitializer import init_q_net
 
 
 class DeepQLearning:
-    BACKPROPAGATION_RATE = 4
-    REPLAY_MEMORY_LENGTH = 30_000
-    BATCH_SIZE = 32
-    COPY_STEP_LIMIT = 10_000
-    MAX_EXPLORATION_RATE = 1
-    EXPLORATION_FRAMES = REPLAY_MEMORY_LENGTH
-    MAX_STEPS_PER_EPISODE = 10_000
-    EPSILON_GREEDY_FRAMES = 1_000_000.0
-
     loss_function = keras.losses.Huber()
 
-    def __init__(self, environment, qNet, learning_rate, exploration_rate, min_exploration_rate, discount_factor,
-                 solutionRunningReward, decay_rate,
-                 savingPath):
+    def __init__(self, environment,
+                 q_net,
+                 learning_rate,
+                 exploration_rate,
+                 min_exploration_rate,
+                 discount_factor,
+                 solution_running_reward,
+                 decay_rate,
+                 backpropagation_rate,
+                 replay_memory_length,
+                 batch_size,
+                 copy_step_limit,
+                 max_exploration_rate,
+                 exploration_frames,
+                 max_steps_per_episode,
+                 epsilon_greedy_frames,
+                 saving_path):
         self.environment = environment
-        self.qNet = qNet
+        self.qNet = q_net
         self.learningRate = learning_rate
         self.explorationRate = exploration_rate
         self.minExplorationRate = min_exploration_rate
         self.discountFactor = discount_factor
         self.decayRate = decay_rate
+        self.backpropagation_rate = backpropagation_rate
+        self.replay_memory_length = replay_memory_length
+        self.batch_size = batch_size
+        self.copy_step_limit = copy_step_limit
+        self.max_exploration_rate = max_exploration_rate
+        self.exploration_frames = exploration_frames
+        self.max_steps_per_episode = max_steps_per_episode
+        self.epsilon_greedy_frames = epsilon_greedy_frames
 
-        self.savingPath = savingPath
-        if os.path.exists(os.path.join(savingPath, "log")):
-            os.remove(os.path.join(savingPath, "log"))
+        self.savingPath = saving_path
+        if os.path.exists(os.path.join(saving_path, "log")):
+            os.remove(os.path.join(saving_path, "log"))
 
-        self.solutionRunningReward = solutionRunningReward
+        self.solutionRunningReward = solution_running_reward
         self.optimizer = keras.optimizers.Adam(learning_rate=learning_rate, clipnorm=1.0)
 
     def deepQLearn(self):
@@ -52,10 +65,10 @@ class DeepQLearning:
             episode_reward = 0
 
             # No infinite Loops
-            for step in range(1, self.MAX_STEPS_PER_EPISODE):
+            for step in range(1, self.max_steps_per_episode):
                 total_steps += 1
 
-                if total_steps < self.EXPLORATION_FRAMES or random.uniform(0, 1) <= self.explorationRate:
+                if total_steps < self.exploration_frames or random.uniform(0, 1) <= self.explorationRate:
                     action = self.environment.env.action_space.sample()
                 else:
                     reshaped_state = state / 255
@@ -68,15 +81,15 @@ class DeepQLearning:
                 replay_memory.append([state, action, reward, new_state, done])
                 episode_reward += reward
 
-                if total_steps % self.BACKPROPAGATION_RATE == 0:
+                if total_steps % self.backpropagation_rate == 0:
                     self.train(replay_memory, main_q_net)
 
                 state = new_state
 
-                if len(replay_memory) > self.REPLAY_MEMORY_LENGTH:
+                if len(replay_memory) > self.replay_memory_length:
                     del replay_memory[:1]
 
-                if total_steps % self.COPY_STEP_LIMIT == 0:
+                if total_steps % self.copy_step_limit == 0:
                     self.qNet.set_weights(main_q_net.get_weights())
                     print("Running Reward: " + str(running_reward) + " at Step " + str(
                         total_steps) + " with Epsilon " + str(self.explorationRate))
@@ -88,7 +101,7 @@ class DeepQLearning:
 
                 # self.explorationRate = self.minExplorationRate + (self.MAX_EXPLORATION_RATE - self.minExplorationRate) * np.exp(-self.decayRate * episode_count)
                 # self.explorationRate = max(self.minExplorationRate, self.explorationRate * self.decayRate)
-                self.explorationRate -= (self.MAX_EXPLORATION_RATE - self.minExplorationRate) / self.EPSILON_GREEDY_FRAMES
+                self.explorationRate -= (self.max_exploration_rate - self.minExplorationRate) / self.epsilon_greedy_frames
                 self.explorationRate = max(self.explorationRate, self.minExplorationRate)
 
                 if done:
@@ -111,19 +124,19 @@ class DeepQLearning:
         keras.saving.save_model(self.qNet, self.savingPath)
 
     def train(self, replay_memory, main_q_net):
-        if len(replay_memory) < self.BATCH_SIZE:
+        if len(replay_memory) < self.batch_size:
             return
 
-        random_indices = np.random.choice(range(len(replay_memory)), size=self.BATCH_SIZE)
+        random_indices = np.random.choice(range(len(replay_memory)), size=self.batch_size)
         states = np.array([replay_memory[i][0] for i in random_indices])
-        predicted_q_values = main_q_net(states / 255).numpy()
+        # predicted_q_values = main_q_net(states / 255).numpy()
         new_states = np.array([replay_memory[i][3] for i in random_indices])
         target_q_values = self.qNet(new_states / 255).numpy()
         rewards = np.array([replay_memory[i][2] for i in random_indices])
         dones = np.array([float(replay_memory[i][4]) for i in random_indices])
         actions = np.array([replay_memory[i][1] for i in random_indices])
 
-        Y = []
+        # Y = []
         expected_q_value = rewards + self.discountFactor * tf.reduce_max(target_q_values, axis=1)
         expected_q_value = (expected_q_value * (1 - dones) - dones).numpy()
 

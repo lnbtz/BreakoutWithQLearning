@@ -11,17 +11,6 @@ def init_q_net(environment, learningRate):
 
 
 def init_q_net_breakout(environment, learningRate):
-    # init = tf.keras.initializers.HeUniform()
-    # model = keras.Sequential()
-    #
-    # model.add(keras.layers.Dense(100, input_shape=environment.env.observation_space.shape, activation='relu',
-    #                              kernel_initializer=init))
-    # model.add(keras.layers.Dense(30, activation='relu', kernel_initializer=init))
-    # model.add(keras.layers.Dense(4, activation='linear', kernel_initializer=init))
-    # model.compile(loss=tf.keras.losses.Huber(), optimizer=tf.keras.optimizers.Adam(learning_rate=learningRate),
-    #               metrics=['accuracy'])
-    # return model
-    # Network defined by the Deepmind paper
     inputs = layers.Input(shape=(84, 84, 4,))
 
     # Convolutions on the frames on the screen

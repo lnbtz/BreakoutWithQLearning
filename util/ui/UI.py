@@ -87,7 +87,7 @@ class UI:
             window.destroy()
             start_config = Config.Config(self.life_switch, self.env_obs_type, self.alpha, self.epsilon, self.gamma,
                                          self.number_of_games)
-            start_config.doRun()
+            start_config.do_run()
 
         button.pack()
         button.bind("<Button-1>", submit)
