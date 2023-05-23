@@ -1,25 +1,21 @@
-import os
 import random
+import os
 
 import numpy as np
-import tensorflow as tf
 from tensorflow import keras
-
+import tensorflow as tf
 from util.networkInitializer import init_q_net
 
 
 class DeepQLearning:
     BACKPROPAGATION_RATE = 4
-    REPLAY_MEMORY_LENGTH = 100000
+    REPLAY_MEMORY_LENGTH = 30_000
     BATCH_SIZE = 32
-    COPY_STEP_LIMIT = 10000
+    COPY_STEP_LIMIT = 10_000
     MAX_EXPLORATION_RATE = 1
-    EXPLORATION_FRAMES = 50000
-    MAX_STEPS_PER_EPISODE = 10000
-    epsilon_greedy_frames = 1000000.0
-    max_exploration_rate = 1
-    min_exploration_rate = 0.1
-    exploration_rate_interval = (max_exploration_rate - min_exploration_rate)
+    EXPLORATION_FRAMES = REPLAY_MEMORY_LENGTH
+    MAX_STEPS_PER_EPISODE = 10_000
+    EPSILON_GREEDY_FRAMES = 1_000_000.0
 
     loss_function = keras.losses.Huber()
 
@@ -35,8 +31,8 @@ class DeepQLearning:
         self.decayRate = decay_rate
 
         self.savingPath = savingPath
-        if os.path.exists(savingPath + "/log"):
-            os.remove(savingPath + "/log")
+        if os.path.exists(os.path.join(savingPath, "log")):
+            os.remove(os.path.join(savingPath, "log"))
 
         self.solutionRunningReward = solutionRunningReward
         self.optimizer = keras.optimizers.Adam(learning_rate=learning_rate, clipnorm=1.0)
@@ -49,6 +45,7 @@ class DeepQLearning:
         running_reward = 0
         total_steps = 0
         episode_count = 1
+        best_running_reward = 0
 
         while True:
             state = self.environment.reset()
@@ -59,18 +56,17 @@ class DeepQLearning:
                 total_steps += 1
 
                 if total_steps < self.EXPLORATION_FRAMES or random.uniform(0, 1) <= self.explorationRate:
-                    action = np.random.choice(4)
+                    action = self.environment.env.action_space.sample()
                 else:
-                    reshaped_state = np.reshape(state, (-1, 84, 84, 4))
-                    reshaped_state = reshaped_state / 255.0
-                    predicted_q_values = main_q_net(tf.convert_to_tensor(reshaped_state)).numpy().flatten()
-                    action = predicted_q_values.argmax()
+                    reshaped_state = state / 255
+                    reshaped_state = tf.expand_dims(reshaped_state, 0)
+                    predicted_q_values = main_q_net(reshaped_state, training=False)
+                    action = tf.argmax(predicted_q_values[0]).numpy()
+
                 new_state, reward, done = self.environment.step(action)
+
                 replay_memory.append([state, action, reward, new_state, done])
                 episode_reward += reward
-
-                self.explorationRate -= self.exploration_rate_interval / self.epsilon_greedy_frames
-                self.explorationRate = max(self.explorationRate, self.minExplorationRate)
 
                 if total_steps % self.BACKPROPAGATION_RATE == 0:
                     self.train(replay_memory, main_q_net)
@@ -85,9 +81,15 @@ class DeepQLearning:
                     print("Running Reward: " + str(running_reward) + " at Step " + str(
                         total_steps) + " with Epsilon " + str(self.explorationRate))
                     self.log(running_reward, total_steps)
+                    if running_reward > best_running_reward:
+                        best_running_reward = running_reward
+                        keras.saving.save_model(self.qNet, self.savingPath)
+                        print("New Highscore! Saving Net")
 
                 # self.explorationRate = self.minExplorationRate + (self.MAX_EXPLORATION_RATE - self.minExplorationRate) * np.exp(-self.decayRate * episode_count)
                 # self.explorationRate = max(self.minExplorationRate, self.explorationRate * self.decayRate)
+                self.explorationRate -= (self.MAX_EXPLORATION_RATE - self.minExplorationRate) / self.EPSILON_GREEDY_FRAMES
+                self.explorationRate = max(self.explorationRate, self.minExplorationRate)
 
                 if done:
                     break
@@ -114,30 +116,27 @@ class DeepQLearning:
 
         random_indices = np.random.choice(range(len(replay_memory)), size=self.BATCH_SIZE)
         states = np.array([replay_memory[i][0] for i in random_indices])
-        normalized_states = states / 255.0
-        predicted_q_values = main_q_net(tf.convert_to_tensor(normalized_states)).numpy()
+        predicted_q_values = main_q_net(states / 255).numpy()
         new_states = np.array([replay_memory[i][3] for i in random_indices])
-        normalized_new_states = new_states / 255.0
-        target_q_values = self.qNet(tf.convert_to_tensor(normalized_new_states)).numpy()
+        target_q_values = self.qNet(new_states / 255).numpy()
         rewards = np.array([replay_memory[i][2] for i in random_indices])
         dones = np.array([float(replay_memory[i][4]) for i in random_indices])
         actions = np.array([replay_memory[i][1] for i in random_indices])
 
         Y = []
-        max_future_rewards = ((rewards * self.discountFactor * tf.reduce_max(target_q_values, axis=1)) * (
-                1 - dones) - dones).numpy()
-        for index in range(self.BATCH_SIZE):
-            q_values = predicted_q_values[index]
-            q_values[actions[index]] = max_future_rewards[index]
-            Y.append(q_values)
+        expected_q_value = rewards + self.discountFactor * tf.reduce_max(target_q_values, axis=1)
+        expected_q_value = (expected_q_value * (1 - dones) - dones).numpy()
+
+        masks = tf.one_hot(actions, 4)
 
         with tf.GradientTape() as tape:
-            predicted_q_values = main_q_net(normalized_states)
-            loss = self.loss_function(Y, predicted_q_values)
+            predicted_q_values = main_q_net(states / 255)
+            q_action = tf.reduce_sum(tf.multiply(predicted_q_values, masks), axis=1)
+            loss = self.loss_function(expected_q_value, q_action)
 
         grads = tape.gradient(loss, main_q_net.trainable_variables)
         self.optimizer.apply_gradients(zip(grads, main_q_net.trainable_variables))
 
     def log(self, running_reward, total_steps):
-        with open(self.savingPath + "/log", "a") as log:
+        with open(os.path.join(self.savingPath, "log"), "a") as log:
             log.write(str(total_steps) + " " + str(running_reward) + " " + str(self.explorationRate) + "\n")
