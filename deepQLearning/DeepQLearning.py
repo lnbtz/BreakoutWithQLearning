@@ -63,9 +63,9 @@ class DeepQLearning:
                     predicted_q_values = main_q_net(reshaped_state, training=False)
                     action = tf.argmax(predicted_q_values[0]).numpy()
 
-                new_state, reward, done = self.environment.step(action)
+                new_state, reward, done, ball_dropped = self.environment.step(action)
 
-                replay_memory.append([state, action, reward, new_state, done])
+                replay_memory.append([state, action, reward, new_state, ball_dropped])
                 episode_reward += reward
 
                 if total_steps % self.BACKPROPAGATION_RATE == 0:
@@ -116,16 +116,16 @@ class DeepQLearning:
 
         random_indices = np.random.choice(range(len(replay_memory)), size=self.BATCH_SIZE)
         states = np.array([replay_memory[i][0] for i in random_indices])
-        predicted_q_values = main_q_net(states / 255).numpy()
+        #predicted_q_values = main_q_net(states / 255).numpy()
         new_states = np.array([replay_memory[i][3] for i in random_indices])
         target_q_values = self.qNet(new_states / 255).numpy()
         rewards = np.array([replay_memory[i][2] for i in random_indices])
-        dones = np.array([float(replay_memory[i][4]) for i in random_indices])
+        ball_dropped = np.array([float(replay_memory[i][4]) for i in random_indices])
         actions = np.array([replay_memory[i][1] for i in random_indices])
 
-        Y = []
+        #Y = []
         expected_q_value = rewards + self.discountFactor * tf.reduce_max(target_q_values, axis=1)
-        expected_q_value = (expected_q_value * (1 - dones) - dones).numpy()
+        expected_q_value = (expected_q_value * (1 - ball_dropped) - ball_dropped).numpy()
 
         masks = tf.one_hot(actions, 4)
 

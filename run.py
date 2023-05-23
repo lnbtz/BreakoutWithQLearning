@@ -9,7 +9,7 @@ BASE_PATH = base_path = os.path.join(root_path(ignore_cwd=False), "qNets")
 
 # breakout
 game = OPT_GAME_BREAKOUT
-one_life = True
+one_life = False
 OBS = OPT_ENV_GREYSCALE
 learning_rate = 0.00025
 exploration_rate = 1
