@@ -1,4 +1,5 @@
 from tensorflow import keras
+import tensorflow as tf
 
 
 class QNet:
@@ -6,9 +7,10 @@ class QNet:
         self.model = model
 
     def getBestAction(self, state):
-        reshaped_state = state.reshape([1, state.shape[0]])
-        q_values = self.model.predict(reshaped_state).flatten()
-        return q_values.argmax()
+        reshaped_state = state / 255
+        reshaped_state = tf.expand_dims(reshaped_state, 0)
+        q_values = self.model(reshaped_state, training=False)
+        return tf.argmax(q_values[0]).numpy()
 
     @staticmethod
     def loadFromFile(pathToModel):

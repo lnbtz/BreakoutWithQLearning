@@ -6,7 +6,7 @@ DELAY_AFTER_DEATH = 2  # Seconds
 
 def showQGame(env, qNet):
     # Initialize pygame
-    observation, info = env.reset()
+    observation = env.reset()
 
     ary = env.render()
     width = len(ary[0])
@@ -33,7 +33,7 @@ def showQGame(env, qNet):
         clock.tick(PLAY_SPEED)
 
         if terminated:
-            observation, info = env.reset()
+            observation = env.reset()
             print("Total Reward: " + str(total_rewards))
             total_rewards = 0
             pygame.time.wait(DELAY_AFTER_DEATH * 1000)

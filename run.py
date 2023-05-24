@@ -7,7 +7,7 @@ import os
 
 BASE_PATH = base_path = os.path.join(root_path(ignore_cwd=False), "qNets")
 
-# breakout
+# breakoutWithOneLive
 game = OPT_GAME_BREAKOUT
 one_life = True
 OBS = OPT_ENV_GREYSCALE
@@ -17,7 +17,7 @@ min_exploration_rate = 0.1
 discount_factor = 0.99
 solution_reward = 10
 decay_rate = 0.999999
-folder_name = "breakout"
+folder_name = "breakoutWithOneLive"
 obs_transformer = StackedGreyscaleObservationTransformer()
 
 # cartpole
