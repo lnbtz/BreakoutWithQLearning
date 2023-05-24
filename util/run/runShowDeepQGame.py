@@ -8,6 +8,7 @@ from util.showDeepQGame import showQGame
 
 qNets_path = root_path(ignore_cwd=True) + '/specialNets/'
 file_name = "breakoutWithOneLive"
+# file_name = "breakoutLeonKindaWorking"
 
 qNet = QNet.loadFromFile(qNets_path + file_name)
 env = Environment(OPT_GAME_BREAKOUT, True, OPT_ENV_GREYSCALE, StackedGreyscaleObservationTransformer())

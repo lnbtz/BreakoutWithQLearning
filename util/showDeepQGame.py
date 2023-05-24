@@ -21,7 +21,7 @@ def showQGame(env, qNet):
     running = True
     while running:
         action = qNet.getBestAction(observation)
-        observation, reward, terminated = env.step(action)
+        observation, reward, terminated, ball_dropped = env.step(action)
         total_rewards += reward
 
         ary = env.render()

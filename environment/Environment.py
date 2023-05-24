@@ -17,6 +17,7 @@ class Environment:
             self.live_counter = 5
         else:
             self.env = gym.make(self.game, render_mode="rgb_array")
+        self.env.reset(seed=42)
 
     def step(self, action):
         observation, reward, terminated, truncated, info = self.env.step(action)
@@ -36,7 +37,7 @@ class Environment:
 
 
     def reset(self):
-        obs, info = self.env.reset()
+        obs, info = self.env.reset(seed=42)
         return self.observationTransformer.transform(obs)
 
     def close(self):
