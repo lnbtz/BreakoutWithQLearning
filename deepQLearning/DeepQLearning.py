@@ -9,7 +9,7 @@ from util.networkInitializer import init_q_net
 
 class DeepQLearning:
     BACKPROPAGATION_RATE = 4
-    REPLAY_MEMORY_LENGTH = 30_000
+    REPLAY_MEMORY_LENGTH = 50_000
     BATCH_SIZE = 32
     COPY_STEP_LIMIT = 10_000
     MAX_EXPLORATION_RATE = 1
@@ -116,14 +116,12 @@ class DeepQLearning:
 
         random_indices = np.random.choice(range(len(replay_memory)), size=self.BATCH_SIZE)
         states = np.array([replay_memory[i][0] for i in random_indices])
-        predicted_q_values = main_q_net(states / 255).numpy()
         new_states = np.array([replay_memory[i][3] for i in random_indices])
         target_q_values = self.qNet(new_states / 255).numpy()
         rewards = np.array([replay_memory[i][2] for i in random_indices])
         dones = np.array([float(replay_memory[i][4]) for i in random_indices])
         actions = np.array([replay_memory[i][1] for i in random_indices])
 
-        Y = []
         expected_q_value = rewards + self.discountFactor * tf.reduce_max(target_q_values, axis=1)
         expected_q_value = (expected_q_value * (1 - dones) - dones).numpy()
 
