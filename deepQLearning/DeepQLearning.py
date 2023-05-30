@@ -1,5 +1,10 @@
 import random
 import os
+import pygame
+
+import bz2
+import pickle
+import _pickle as cPickle
 
 import numpy as np
 from tensorflow import keras
@@ -19,9 +24,20 @@ class DeepQLearning:
 
     loss_function = keras.losses.Huber()
 
-    def __init__(self, environment, qNet, learning_rate, exploration_rate, min_exploration_rate, discount_factor,
-                 solutionRunningReward, decay_rate,
-                 savingPath):
+    def __init__(self,
+                 environment,
+                 qNet,
+                 learning_rate,
+                 exploration_rate,
+                 min_exploration_rate,
+                 discount_factor,
+                 solutionRunningReward,
+                 decay_rate,
+                 qnet_saving_path,
+                 visual_learning=False,
+                 learning_episodes=None,
+                 replay_memory_saving_path=None):
+
         self.environment = environment
         self.qNet = qNet
         self.learningRate = learning_rate
@@ -30,17 +46,24 @@ class DeepQLearning:
         self.discountFactor = discount_factor
         self.decayRate = decay_rate
 
-        self.savingPath = savingPath
-        if os.path.exists(os.path.join(savingPath, "log")):
-            os.remove(os.path.join(savingPath, "log"))
+        self.qnet_saving_path = qnet_saving_path
+        if os.path.exists(os.path.join(qnet_saving_path, "log")):
+            os.remove(os.path.join(qnet_saving_path, "log"))
 
         self.solutionRunningReward = solutionRunningReward
         self.optimizer = keras.optimizers.Adam(learning_rate=learning_rate, clipnorm=1.0)
+
+        self.visual_learning = visual_learning
+        self.learning_episodes = learning_episodes
+        self.replay_memory_saving_path = replay_memory_saving_path
 
     def deepQLearn(self):
         main_q_net = init_q_net(self.environment, self.learningRate)
         main_q_net.set_weights(self.qNet.get_weights())
         replay_memory = []
+        if self.replay_memory_saving_path:
+            replay_memory = self.decompress_pickle("replayMemory/running_replay_memory.pbz2")
+
         reward_memory = []
         running_reward = 0
         total_steps = 0
@@ -49,6 +72,16 @@ class DeepQLearning:
 
         while True:
             state = self.environment.reset()
+
+            if self.visual_learning:
+                ary = self.environment.env.render()
+                width = len(ary[0])
+                height = len(ary)
+                pygame.init()
+                display = pygame.display.set_mode((width, height))
+                pygame.display.set_caption(self.environment.game + ' - Q-Agent')
+                clock = pygame.time.Clock()
+
             episode_reward = 0
 
             # No infinite Loops
@@ -64,6 +97,15 @@ class DeepQLearning:
                     action = tf.argmax(predicted_q_values[0]).numpy()
 
                 new_state, reward, done, ball_dropped = self.environment.step(action)
+
+                if self.visual_learning:
+                    ary = self.environment.env.render()
+                    img = pygame.surfarray.make_surface(ary)
+                    img = pygame.transform.rotate(img, -90)
+                    img = pygame.transform.flip(img, True, False)
+                    display.blit(img, (0, 0))
+                    pygame.display.update()
+                    clock.tick(50)
 
                 replay_memory.append([state, action, reward, new_state, ball_dropped])
                 episode_reward += reward
@@ -83,12 +125,15 @@ class DeepQLearning:
                     self.log(running_reward, total_steps)
                     if running_reward > best_running_reward:
                         best_running_reward = running_reward
-                        keras.saving.save_model(self.qNet, self.savingPath)
                         print("New Highscore! Saving Net")
+                        keras.saving.save_model(self.qNet, self.qnet_saving_path)
+                        # replay_memory speicher
+                        self.compressed_pickle("replayMemory/running_replay_memory", replay_memory)
 
                 # self.explorationRate = self.minExplorationRate + (self.MAX_EXPLORATION_RATE - self.minExplorationRate) * np.exp(-self.decayRate * episode_count)
                 # self.explorationRate = max(self.minExplorationRate, self.explorationRate * self.decayRate)
-                self.explorationRate -= (self.MAX_EXPLORATION_RATE - self.minExplorationRate) / self.EPSILON_GREEDY_FRAMES
+                self.explorationRate -= (
+                                                    self.MAX_EXPLORATION_RATE - self.minExplorationRate) / self.EPSILON_GREEDY_FRAMES
                 self.explorationRate = max(self.explorationRate, self.minExplorationRate)
 
                 if done:
@@ -107,8 +152,12 @@ class DeepQLearning:
                 print("Found Solution after " + str(episode_count) + " Episodes")
                 break
 
+            if self.learning_episodes is not None and self.learning_episodes < episode_count:
+                break
+
         print("Saving Target Net")
-        keras.saving.save_model(self.qNet, self.savingPath)
+        keras.saving.save_model(self.qNet, self.qnet_saving_path)
+        self.compressed_pickle("replayMemory/replay_memory_reward_" + str(running_reward), replay_memory)
 
     def train(self, replay_memory, main_q_net):
         if len(replay_memory) < self.BATCH_SIZE:
@@ -136,5 +185,14 @@ class DeepQLearning:
         self.optimizer.apply_gradients(zip(grads, main_q_net.trainable_variables))
 
     def log(self, running_reward, total_steps):
-        with open(os.path.join(self.savingPath, "log"), "a") as log:
+        with open(os.path.join(self.qnet_saving_path, "log"), "a") as log:
             log.write(str(total_steps) + " " + str(running_reward) + " " + str(self.explorationRate) + "\n")
+
+    def compressed_pickle(self, filename, data):
+        with bz2.BZ2File(filename + '.pbz2', 'w') as f:
+            cPickle.dump(data, f)
+
+    def decompress_pickle(self, file):
+        data = bz2.BZ2File(file, 'rb')
+        data = cPickle.load(data)
+        return data

@@ -17,8 +17,11 @@ min_exploration_rate = 0.1
 discount_factor = 0.99
 solution_reward = 10
 decay_rate = 0.999999
-folder_name = "breakoutWithOneLive"
+folder_name = "breakout"
 obs_transformer = StackedGreyscaleObservationTransformer()
+visual_learning = False
+learning_episodes = None
+load_network_from_file = False
 
 # cartpole
 # game = OPT_GAME_CARTPOLE
@@ -43,7 +46,10 @@ starter = Config(game,
                  discount_factor,
                  solution_reward,
                  decay_rate,
-                 os.path.join(BASE_PATH, folder_name),
-                 obs_transformer
+                 folder_name,
+                 obs_transformer,
+                 visual_learning,
+                 learning_episodes,
+                 load_network_from_file
                  )
 starter.doRun()

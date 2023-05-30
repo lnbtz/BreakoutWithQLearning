@@ -16,3 +16,8 @@ class QNet:
     def loadFromFile(pathToModel):
         model = keras.saving.load_model(pathToModel)
         return QNet(model)
+
+    @staticmethod
+    def load_model_from_file(pathToModel):
+        model = keras.saving.load_model(pathToModel)
+        return model
