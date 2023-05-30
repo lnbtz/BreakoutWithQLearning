@@ -11,7 +11,7 @@ class DeepQLearning:
     BACKPROPAGATION_RATE = 4
     REPLAY_MEMORY_LENGTH = 50_000
     BATCH_SIZE = 32
-    COPY_STEP_LIMIT = 10_000
+    COPY_STEP_LIMIT = 10_0
     MAX_EXPLORATION_RATE = 1
     EXPLORATION_FRAMES = REPLAY_MEMORY_LENGTH
     MAX_STEPS_PER_EPISODE = 10_000
@@ -36,6 +36,7 @@ class DeepQLearning:
 
         self.solutionRunningReward = solutionRunningReward
         self.optimizer = keras.optimizers.Adam(learning_rate=learning_rate, clipnorm=1.0)
+        self.training_stage = 0
 
     def deepQLearn(self):
         main_q_net = init_q_net(self.environment, self.learningRate)
@@ -85,6 +86,10 @@ class DeepQLearning:
                         best_running_reward = running_reward
                         keras.saving.save_model(self.qNet, self.savingPath)
                         print("New Highscore! Saving Net")
+                        if running_reward / 10 > self.training_stage:
+                            keras.saving.save_model(self.qNet, self.savingPath + '_reward-' + str(self.training_stage*10))
+                            self.training_stage += 1
+                            print("Saving new Trainig stage")
 
                 # self.explorationRate = self.minExplorationRate + (self.MAX_EXPLORATION_RATE - self.minExplorationRate) * np.exp(-self.decayRate * episode_count)
                 # self.explorationRate = max(self.minExplorationRate, self.explorationRate * self.decayRate)
