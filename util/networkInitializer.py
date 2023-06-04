@@ -1,4 +1,5 @@
 import tensorflow as tf
+from keras_visualizer import visualizer
 from tensorflow import keras
 from util.options import OPT_GAME_BREAKOUT, OPT_GAME_CARTPOLE
 from keras import layers
@@ -34,7 +35,9 @@ def init_q_net_breakout(environment, learningRate):
     layer5 = layers.Dense(512, activation="relu")(layer4)
     action = layers.Dense(4, activation="linear")(layer5)
 
-    return keras.Model(inputs=inputs, outputs=action)
+    model = keras.Model(inputs=inputs, outputs=action)
+    visualizer(model, file_format='png', view=True)
+    return model
 
 
 def init_q_net_cartpole(environment, learningRate):
@@ -46,4 +49,6 @@ def init_q_net_cartpole(environment, learningRate):
     model.add(keras.layers.Dense(environment.env.action_space.n, activation='linear', kernel_initializer=init))
     model.compile(loss=tf.keras.losses.Huber(), optimizer=tf.keras.optimizers.Adam(learning_rate=learningRate),
                   metrics=['accuracy'])
+
+
     return model
