@@ -68,6 +68,7 @@ class DeepQLearning:
         total_steps = 0
         episode_count = 1
         best_running_reward = 0
+        save_interval = 0.5
 
         while True:
             state = self.environment.reset()
@@ -103,8 +104,9 @@ class DeepQLearning:
                     print("Running Reward: " + str(running_reward) + " at Step " + str(
                         total_steps) + " with Epsilon " + str(self.explorationRate))
                     self.log(running_reward, total_steps)
-                    if running_reward > best_running_reward:
-                        best_running_reward = running_reward
+                    if running_reward > save_interval:
+                        save_interval += 5
+                        os.path.join(self.savingPath, str(running_reward))
                         keras.saving.save_model(self.qNet, self.savingPath)
                         print("New Highscore! Saving Net")
 

@@ -12,9 +12,9 @@ BASE_PATH = base_path = os.path.join(root_path(ignore_cwd=False), "qNets")
 game = OPT_GAME_BREAKOUT
 one_life = False
 OBS = OPT_ENV_GREYSCALE
-learning_rate = 0.00001
+learning_rate = 0.00025
 exploration_rate = 1
-min_exploration_rate = 0.01
+min_exploration_rate = 0.1
 discount_factor = 0.99
 solution_reward = 100
 decay_rate = 0.999999
@@ -26,7 +26,7 @@ max_exploration_rate = 1
 exploration_frames = 50_000
 max_steps_per_episode = 10_000
 epsilon_greedy_frames = 1_000_000.0
-folder_name = "breakoutWorking"
+folder_name = "breakoutProgress"
 obs_transformer = StackedGreyscaleObservationTransformer()
 
 # cartpole
