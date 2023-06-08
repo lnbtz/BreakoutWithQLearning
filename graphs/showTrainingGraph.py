@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from get_project_root import root_path
 
 project_root = root_path(ignore_cwd=True)
-file = "/specialNets/cartpole/" + "log"
+file = "/qNets/breakoutWorking/" + "log"
 
 steps = []
 reward = []
@@ -24,11 +24,11 @@ ax.plot(steps, reward)
 ax.set(xlabel="Steps", ylabel="Running Reward over 100 Episodes", title="Reward")
 xlabels = ['{:,.0f}'.format(x) + 'K' for x in ax.get_xticks()/1000]
 ax.set_xticklabels(xlabels)
-plt.show()
+plt.savefig("reward.png")
 
 # Epsilon
 fig, ax = plt.subplots()
 ax.plot(steps, epsilon)
 ax.set(xlabel="Steps", ylabel="Epsilon", title="Epsilon")
 ax.set_xticklabels(xlabels)
-plt.show()
+plt.savefig("epsilon.png")
