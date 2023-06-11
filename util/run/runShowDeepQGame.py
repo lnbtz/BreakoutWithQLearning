@@ -6,11 +6,11 @@ from get_project_root import root_path
 from deepQLearning.QNet import QNet
 from util.showDeepQGame import showQGame
 
-qNets_path = root_path(ignore_cwd=True) + '/specialNets/'
-file_name = "breakoutWithOneLive"
+qNets_path = root_path(ignore_cwd=True) + '/specialNets/breakoutProgress/'
+file_name = "73.17"
 # file_name = "breakoutLeonKindaWorking"
 
 qNet = QNet.loadFromFile(qNets_path + file_name)
-env = Environment(OPT_GAME_BREAKOUT, True, OPT_ENV_GREYSCALE, StackedGreyscaleObservationTransformer())
+env = Environment(OPT_GAME_BREAKOUT, False, OPT_ENV_GREYSCALE, StackedGreyscaleObservationTransformer())
 
 showQGame(env, qNet)

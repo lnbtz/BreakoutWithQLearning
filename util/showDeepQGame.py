@@ -6,6 +6,7 @@ DELAY_AFTER_DEATH = 2  # Seconds
 
 def showQGame(env, qNet):
     # Initialize pygame
+    observatons = []
     observation = env.reset()
 
     ary = env.render()
@@ -19,10 +20,16 @@ def showQGame(env, qNet):
 
     total_rewards = 0
     running = True
+    ball_dropped = False
     while running:
-        action = qNet.getBestAction(observation)
+        if ball_dropped:
+            action = 1
+        else:
+            action = qNet.getBestAction(observation)
         observation, reward, terminated, ball_dropped = env.step(action)
         total_rewards += reward
+
+        observatons.append(observation)
 
         ary = env.render()
         img = pygame.surfarray.make_surface(ary)
@@ -33,6 +40,7 @@ def showQGame(env, qNet):
         clock.tick(PLAY_SPEED)
 
         if terminated:
+            return observatons
             observation = env.reset()
             print("Total Reward: " + str(total_rewards))
             total_rewards = 0

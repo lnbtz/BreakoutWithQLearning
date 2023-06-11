@@ -1,4 +1,5 @@
 import numpy as np
+from util.showDeepQGame import showQGame
 from environment.observationTransformers.StackedGreyscaleObservationTransformer import StackedGreyscaleObservationTransformer
 from environment.Environment import Environment
 from util.options import *
@@ -36,26 +37,26 @@ def show_filter_output(model):
                 fig1.set_yticks([])
                 plt.imshow(f[:,:,0], cmap='gray')
 
-    plt.show()
+        plt.show()
 
-def show_feature_maps(model):
+def show_feature_maps(model, observation):
     layers = model.layers
 
-    conv_layer_index = [1, 2, 3]
+    conv_layer_index = [0, 1, 2, 3]
     outputs = [model.layers[i].output for i in conv_layer_index]
     model_short = Model(inputs=model.inputs, outputs=outputs)
     print(model_short.summary())
 
-    env = Environment(OPT_GAME_BREAKOUT, True, OPT_ENV_GREYSCALE, StackedGreyscaleObservationTransformer())
-    env.reset()
+#   env = Environment(OPT_GAME_BREAKOUT, True, OPT_ENV_GREYSCALE, StackedGreyscaleObservationTransformer())
+#   env.reset()
 
-    observation, _, _, _ = env.step(1)
-    observation1, _, _, _ = env.step(3)
-    observation2, _, _, _ = env.step(3)
-    observation3, _, _, _ = env.step(3)
-    observation4, _, _, _ = env.step(3)
-    observation5, _, _, _ = env.step(3)
-    reshaped_state = observation5 / 255
+#   observation, _, _, _ = env.step(1)
+#   observation1, _, _, _ = env.step(3)
+#   observation2, _, _, _ = env.step(3)
+#   observation3, _, _, _ = env.step(3)
+#   observation4, _, _, _ = env.step(3)
+#   observation5, _, _, _ = env.step(3)
+    reshaped_state = observation / 255
     reshaped_state = tf.expand_dims(reshaped_state, 0)
 
     feature_output = model_short.predict(reshaped_state)
@@ -68,11 +69,26 @@ def show_feature_maps(model):
             fig.set_xticks([])
             fig.set_yticks([])
             plt.imshow(ftr[0, :, :, i - 1], cmap='gray')
-    plt.show()
+        plt.show()
 
 
 
 if __name__ == "__main__":
-    model = QNet.load_model_from_file(root_path(ignore_cwd=True) + "/specialNets/breakoutLeonKindaWorking")
+    # observations sammeln
+    qNets_path = root_path(ignore_cwd=True) + '/specialNets/breakoutProgress/'
+    file_name = "5.52"
+    # file_name = "breakoutLeonKindaWorking"
+
+#   qNet = QNet.loadFromFile(qNets_path + file_name)
+#   env = Environment(OPT_GAME_BREAKOUT, False, OPT_ENV_GREYSCALE, StackedGreyscaleObservationTransformer())
+
+#   observations = showQGame(env, qNet)
+
+
+    model = QNet.load_model_from_file(root_path(ignore_cwd=True) + "/specialNets/breakoutProgress/73.17")
     show_filter_output(model)
-    show_feature_maps(model)
+
+#   obs1 = observations[18]
+#   obs2 = observations[360]
+#   show_feature_maps(model, obs1)
+#   show_feature_maps(model, obs2)
