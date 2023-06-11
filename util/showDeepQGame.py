@@ -67,7 +67,6 @@ def showQGame(env, qNet, file_name, auto_shoot):
             mutate_frames(display, frames)
 
             clock.tick(PLAY_SPEED)
-
             if terminated:
                 observation, total_rewards = terminate(env, frames, observation, total_rewards, file_name)
                 env.close()
@@ -77,6 +76,10 @@ def showQGame(env, qNet, file_name, auto_shoot):
 
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q:
+                    observation, total_rewards = terminate(env, frames, observation, total_rewards, file_name)
+                    env.close()
+                    running = False
                 if event.key == pygame.K_s:
                     actions = qNet.getQValues(observation)
                     numpy_actions = actions.numpy()

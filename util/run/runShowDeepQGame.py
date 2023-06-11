@@ -19,7 +19,7 @@ for file_name in subfolders:
     qNet = QNet.loadFromFile(qNets_path + file_name)
     env = Environment(OPT_GAME_BREAKOUT, False, OPT_ENV_GREYSCALE, StackedGreyscaleObservationTransformer())
     file_name = file_name + "AutoShot"
-    showQGame(env, qNet, file_name, False)
+    showQGame(env, qNet, file_name, True)
 
 # qNet = QNet.loadFromFile(qNets_path + file_name)
 # env = Environment(OPT_GAME_BREAKOUT, False, OPT_ENV_GREYSCALE, StackedGreyscaleObservationTransformer())
