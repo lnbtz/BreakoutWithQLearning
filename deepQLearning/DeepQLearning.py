@@ -106,8 +106,8 @@ class DeepQLearning:
                     self.log(running_reward, total_steps)
                     if running_reward > save_interval:
                         save_interval += 5
-                        os.path.join(self.savingPath, str(running_reward))
-                        keras.saving.save_model(self.qNet, self.savingPath)
+                        final_saving_path = os.path.join(self.savingPath, str(running_reward))
+                        keras.saving.save_model(self.qNet, final_saving_path)
                         print("New Highscore! Saving Net")
 
                 # self.explorationRate = self.minExplorationRate + (self.MAX_EXPLORATION_RATE - self.minExplorationRate) * np.exp(-self.decayRate * episode_count)

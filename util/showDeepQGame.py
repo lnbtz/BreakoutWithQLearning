@@ -9,7 +9,7 @@ PLAY_SPEED = 50
 DELAY_AFTER_DEATH = 5  # Seconds
 
 
-def showQGame(env, qNet):
+def showQGame(env, qNet, file_name, auto_shoot):
     # Create the figure and axes
     fig, ax = plt.subplots()
 
@@ -47,15 +47,18 @@ def showQGame(env, qNet):
     clock = pygame.time.Clock()
 
     total_rewards = 0
+    ball_dropped = False
     is_paused = False
     running = True
-    env.step(1)
+    if auto_shoot:
+        env.step(1)
     while running:
         if not is_paused:
+            if ball_dropped and auto_shoot:
+                env.step(1)
+
             action = qNet.getBestAction(observation)
             observation, reward, terminated, ball_dropped = env.step(action)
-            if ball_dropped:
-                env.step(1)
             total_rewards += reward
 
             ary = env.render()
@@ -66,7 +69,9 @@ def showQGame(env, qNet):
             clock.tick(PLAY_SPEED)
 
             if terminated:
-                observation, total_rewards = terminate(env, frames, observation, total_rewards)
+                observation, total_rewards = terminate(env, frames, observation, total_rewards, file_name)
+                env.close()
+                running = False
         else:
             clock.tick(PLAY_SPEED)
 
@@ -82,7 +87,7 @@ def showQGame(env, qNet):
                           + " LEFT: " + str(numpy_actions[3]))
                     normalized_numbers = (numpy_actions-np.min(numpy_actions))/(np.max(numpy_actions)-np.min(numpy_actions))
                     numbers = normalized_numbers
-                    
+
                     for bar, number in zip(bars, numbers):
                         bar.set_height(number)
                     fig.canvas.draw()
@@ -102,20 +107,21 @@ def showQGame(env, qNet):
                     clock.tick(PLAY_SPEED)
 
                     if terminated:
-                        observation, total_rewards = terminate(env, frames, observation, total_rewards)
+                        observation, total_rewards = terminate(env, frames, observation, total_rewards, file_name)
                 if event.key == pygame.K_SPACE:
                     is_paused = not is_paused
             if event.type == pygame.QUIT:
+                observation, total_rewards = terminate(env, frames, observation, total_rewards, file_name)
                 env.close()
                 running = False
 
 
-def terminate(env, frames, observation, total_rewards):
+def terminate(env, frames, observation, total_rewards, qNetName):
     observation = env.reset()
     print("Total Reward: " + str(total_rewards))
     total_rewards = 0
     pygame.time.wait(DELAY_AFTER_DEATH * 1000)
-    save_gif(frames)
+    save_gif(frames, qNetName)
     return observation, total_rewards
 
 
@@ -135,9 +141,9 @@ def mutate_frames(display, frames):
     frames.append(frame)
 
 
-def save_gif(frames):
+def save_gif(frames, qNetName):
     # Define the output file path
-    output_file = 'gameplay.gif'
+    output_file = "/Users/leonbeitz/PycharmProjects/BreakoutWithQLearning/qNets/breakoutProgressGifs/" + qNetName + ".gif"
 
     # Save the frames as a GIF
     imageio.mimsave(output_file, np.array(frames), duration=20)
