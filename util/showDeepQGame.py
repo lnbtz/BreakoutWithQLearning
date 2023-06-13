@@ -2,6 +2,7 @@ import imageio
 import numpy as np
 import pygame
 import tensorflow as tf
+from util.ui.showFilters import *
 
 from matplotlib import pyplot as plt
 
@@ -10,6 +11,11 @@ DELAY_AFTER_DEATH = 5  # Seconds
 
 
 def showQGame(env, qNet, file_name, auto_shoot):
+    conv_layer_index = [0, 1, 2, 3]
+    outputs = [qNet.model.layers[i].output for i in conv_layer_index]
+    model_short = Model(inputs=qNet.model.inputs, outputs=outputs)
+    print(model_short.summary())
+
     # Create the figure and axes
     fig, ax = plt.subplots()
 
@@ -80,7 +86,7 @@ def showQGame(env, qNet, file_name, auto_shoot):
                     observation, total_rewards = terminate(env, frames, observation, total_rewards, file_name)
                     env.close()
                     running = False
-                if event.key == pygame.K_s:
+                if event.key == pygame.K_RIGHT:
                     actions = qNet.getQValues(observation)
                     numpy_actions = actions.numpy()
                     print("Q-Values: ")
@@ -124,7 +130,7 @@ def terminate(env, frames, observation, total_rewards, qNetName):
     print("Total Reward: " + str(total_rewards))
     total_rewards = 0
     pygame.time.wait(DELAY_AFTER_DEATH * 1000)
-    save_gif(frames, qNetName)
+    #save_gif(frames, qNetName)
     return observation, total_rewards
 
 
