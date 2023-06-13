@@ -1,12 +1,18 @@
+import sys
+
 import imageio
 import numpy as np
 import pygame
 import tensorflow as tf
 
 from matplotlib import pyplot as plt
+from pygame.locals import *
 
 PLAY_SPEED = 50
-DELAY_AFTER_DEATH = 5  # Seconds
+DELAY_AFTER_DEATH = 1  # Seconds
+SIZE_SCALE = 5
+SCREEN_X = 1920
+SCREEN_Y = 1080
 
 
 def showQGame(env, qNet, file_name, auto_shoot):
@@ -38,11 +44,11 @@ def showQGame(env, qNet, file_name, auto_shoot):
     observation = env.reset()
 
     ary = env.render()
-    width = len(ary[0])
-    height = len(ary)
+    width = SCREEN_X
+    height = SCREEN_Y
 
     pygame.init()
-    display = pygame.display.set_mode((width, height))
+    display = pygame.display.set_mode((width, height), FULLSCREEN)
     pygame.display.set_caption(env.game + ' - Q-Agent')
     clock = pygame.time.Clock()
 
@@ -80,7 +86,9 @@ def showQGame(env, qNet, file_name, auto_shoot):
                     observation, total_rewards = terminate(env, frames, observation, total_rewards, file_name)
                     env.close()
                     running = False
-                if event.key == pygame.K_s:
+                if event.key == pygame.K_ESCAPE:
+                    sys.exit(0)
+                if event.key == pygame.K_RIGHT:
                     actions = qNet.getQValues(observation)
                     numpy_actions = actions.numpy()
                     print("Q-Values: ")
@@ -88,7 +96,8 @@ def showQGame(env, qNet, file_name, auto_shoot):
                           + " FIRE: " + str(numpy_actions[1])
                           + " RIGHT: " + str(numpy_actions[2])
                           + " LEFT: " + str(numpy_actions[3]))
-                    normalized_numbers = (numpy_actions-np.min(numpy_actions))/(np.max(numpy_actions)-np.min(numpy_actions))
+                    normalized_numbers = (numpy_actions - np.min(numpy_actions)) / (
+                                np.max(numpy_actions) - np.min(numpy_actions))
                     numbers = normalized_numbers
 
                     for bar, number in zip(bars, numbers):
@@ -132,7 +141,9 @@ def mutate_image(ary, display):
     img = pygame.surfarray.make_surface(ary)
     img = pygame.transform.rotate(img, -90)
     img = pygame.transform.flip(img, True, False)
-    display.blit(img, (0, 0))
+    # resize the image so the entire screen is bigger with the same information
+    img = pygame.transform.scale(img, (len(ary[0]) * SIZE_SCALE, len(ary) * SIZE_SCALE))
+    display.blit(img, (SCREEN_X / 2 - len(ary[0]) * SIZE_SCALE / 2, SCREEN_Y / 2 - len(ary) * SIZE_SCALE / 2))
 
 
 def mutate_frames(display, frames):
@@ -150,4 +161,3 @@ def save_gif(frames, qNetName):
 
     # Save the frames as a GIF
     imageio.mimsave(output_file, np.array(frames), duration=20)
-
