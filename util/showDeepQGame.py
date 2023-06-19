@@ -1,6 +1,7 @@
 import sys
 
 import imageio
+import matplotlib.pyplot
 import numpy as np
 import pygame
 import tensorflow as tf
@@ -11,9 +12,9 @@ from pygame.locals import *
 
 PLAY_SPEED = 50
 DELAY_AFTER_DEATH = 1  # Seconds
-SIZE_SCALE = 5
-SCREEN_X = 1920
-SCREEN_Y = 1080
+SIZE_SCALE = 1
+SCREEN_X = 400
+SCREEN_Y = 200
 
 
 def showQGame(env, qNet, file_name, auto_shoot):
@@ -22,7 +23,6 @@ def showQGame(env, qNet, file_name, auto_shoot):
     model_short = Model(inputs=qNet.model.inputs, outputs=outputs)
     print(model_short.summary())
 
-    # Create the figure and axes
     fig, ax = plt.subplots()
 
     bar_names = ["NOOP", "FIRE", "RIGHT", "LEFT"]
@@ -54,7 +54,7 @@ def showQGame(env, qNet, file_name, auto_shoot):
     height = SCREEN_Y
 
     pygame.init()
-    display = pygame.display.set_mode((width, height), FULLSCREEN)
+    display = pygame.display.set_mode((width, height))
     pygame.display.set_caption(env.game + ' - Q-Agent')
     clock = pygame.time.Clock()
 
@@ -95,6 +95,30 @@ def showQGame(env, qNet, file_name, auto_shoot):
                 if event.key == pygame.K_ESCAPE:
                     sys.exit(0)
                 if event.key == pygame.K_RIGHT:
+                    matplotlib.pyplot.close('all')
+
+                    fig, ax = plt.subplots()
+
+                    bar_names = ["NOOP", "FIRE", "RIGHT", "LEFT"]
+                    # Create four initial data points
+                    numbers = [0, 0, 0, 0]
+
+                    # Create the bar plot
+                    bars = ax.bar(range(4), numbers)
+
+                    # Set the axis labels and title
+                    ax.set_xlabel("Actions")
+                    ax.set_ylabel("Q-Value")
+                    ax.set_title("Real-time Q-Value Visualization")
+
+                    # Set the x-axis tick labels
+                    ax.set_xticks(range(4))
+                    ax.set_xticklabels(bar_names)
+
+                    # Set the initial y-axis limits
+                    ax.set_ylim(0, 1)
+#                   ----------------------------------------
+
                     actions = qNet.getQValues(observation)
                     numpy_actions = actions.numpy()
                     print("Q-Values: ")
@@ -111,8 +135,25 @@ def showQGame(env, qNet, file_name, auto_shoot):
                     fig.canvas.draw()
                     plt.pause(0.001)
 
+                    ##------------
+                    reshaped_state = observation / 255
+                    reshaped_state = tf.expand_dims(reshaped_state, 0)
+                    feature_output = model_short.predict(reshaped_state)
+                    columns = 8
+                    rows = 8
+                    for ftr in feature_output:
+                        plt.figure(figsize=(12, 12))
+                        for i in range(1, len(ftr[0, 0, 0]) + 1):
+                            fig = plt.subplot(rows, columns, i)
+                            fig.set_xticks([])
+                            fig.set_yticks([])
+                            plt.imshow(ftr[0, :, :, i - 1], cmap='gray')
+                    plt.show()
+
                     action = tf.argmax(actions).numpy()
                     observation, reward, terminated, ball_dropped = env.step(action)
+
+
                     if ball_dropped:
                         env.step(1)
                     total_rewards += reward
@@ -122,10 +163,21 @@ def showQGame(env, qNet, file_name, auto_shoot):
                     pygame.display.update()
                     mutate_frames(display, frames)
 
-                    clock.tick(PLAY_SPEED)
 
                     if terminated:
                         observation, total_rewards = terminate(env, frames, observation, total_rewards, file_name)
+
+
+
+                #if event.key == pygame.K_DOWN:
+                    #show_feature_maps(qNet.model, observation)
+                    #ary = env.render()
+                    #mutate_image(ary, display)
+                    #pygame.display.update()
+                    #mutate_frames(display, frames)
+
+                    clock.tick(PLAY_SPEED)
+
                 if event.key == pygame.K_SPACE:
                     is_paused = not is_paused
             if event.type == pygame.QUIT:

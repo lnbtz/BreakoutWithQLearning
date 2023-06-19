@@ -48,13 +48,13 @@ def show_feature_maps(model, observation):
     columns = 8
     rows = 8
     for ftr in feature_output:
-        fig = plt.figure(figsize=(12,12))
+        plt.figure(figsize=(12,12))
         for i in range(1, len(ftr[0, 0, 0]) + 1):
             fig = plt.subplot(rows, columns, i)
             fig.set_xticks([])
             fig.set_yticks([])
             plt.imshow(ftr[0, :, :, i - 1], cmap='gray')
-        plt.show()
+    plt.show()
 
 
 
