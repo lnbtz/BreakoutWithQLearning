@@ -12,9 +12,9 @@ from pygame.locals import *
 
 PLAY_SPEED = 50
 DELAY_AFTER_DEATH = 1  # Seconds
-SIZE_SCALE = 1
-SCREEN_X = 400
-SCREEN_Y = 200
+SIZE_SCALE = 5
+SCREEN_X = 900
+SCREEN_Y = 1080
 
 
 def showQGame(env, qNet, file_name, auto_shoot):
@@ -23,26 +23,35 @@ def showQGame(env, qNet, file_name, auto_shoot):
     model_short = Model(inputs=qNet.model.inputs, outputs=outputs)
     print(model_short.summary())
 
-    fig, ax = plt.subplots()
+    columns = 8
+    rows = 8
+    figures = []
+    for i in range(1, 5):
+        fig = plt.subplot(rows, columns, i)
+        fig.set_xticks([])
+        fig.set_yticks([])
+        figures.append(fig)
+
+    best_action_fig, best_action_ax = plt.subplots()
 
     bar_names = ["NOOP", "FIRE", "RIGHT", "LEFT"]
     # Create four initial data points
     numbers = [0, 0, 0, 0]
 
     # Create the bar plot
-    bars = ax.bar(range(4), numbers)
+    bars = best_action_ax.bar(range(4), numbers)
 
     # Set the axis labels and title
-    ax.set_xlabel("Actions")
-    ax.set_ylabel("Q-Value")
-    ax.set_title("Real-time Q-Value Visualization")
+    best_action_ax.set_xlabel("Actions")
+    best_action_ax.set_ylabel("Q-Value")
+    best_action_ax.set_title("Real-time Q-Value Visualization")
 
     # Set the x-axis tick labels
-    ax.set_xticks(range(4))
-    ax.set_xticklabels(bar_names)
+    best_action_ax.set_xticks(range(4))
+    best_action_ax.set_xticklabels(bar_names)
 
     # Set the initial y-axis limits
-    ax.set_ylim(0, 1)
+    best_action_ax.set_ylim(0, 1)
 
     frames = []
 
@@ -95,29 +104,6 @@ def showQGame(env, qNet, file_name, auto_shoot):
                 if event.key == pygame.K_ESCAPE:
                     sys.exit(0)
                 if event.key == pygame.K_RIGHT:
-                    matplotlib.pyplot.close('all')
-
-                    fig, ax = plt.subplots()
-
-                    bar_names = ["NOOP", "FIRE", "RIGHT", "LEFT"]
-                    # Create four initial data points
-                    numbers = [0, 0, 0, 0]
-
-                    # Create the bar plot
-                    bars = ax.bar(range(4), numbers)
-
-                    # Set the axis labels and title
-                    ax.set_xlabel("Actions")
-                    ax.set_ylabel("Q-Value")
-                    ax.set_title("Real-time Q-Value Visualization")
-
-                    # Set the x-axis tick labels
-                    ax.set_xticks(range(4))
-                    ax.set_xticklabels(bar_names)
-
-                    # Set the initial y-axis limits
-                    ax.set_ylim(0, 1)
-#                   ----------------------------------------
 
                     actions = qNet.getQValues(observation)
                     numpy_actions = actions.numpy()
@@ -127,32 +113,28 @@ def showQGame(env, qNet, file_name, auto_shoot):
                           + " RIGHT: " + str(numpy_actions[2])
                           + " LEFT: " + str(numpy_actions[3]))
                     normalized_numbers = (numpy_actions - np.min(numpy_actions)) / (
-                                np.max(numpy_actions) - np.min(numpy_actions))
+                            np.max(numpy_actions) - np.min(numpy_actions))
                     numbers = normalized_numbers
 
                     for bar, number in zip(bars, numbers):
                         bar.set_height(number)
-                    fig.canvas.draw()
+                    best_action_fig.canvas.draw()
                     plt.pause(0.001)
 
                     ##------------
                     reshaped_state = observation / 255
                     reshaped_state = tf.expand_dims(reshaped_state, 0)
                     feature_output = model_short.predict(reshaped_state)
-                    columns = 8
-                    rows = 8
-                    for ftr in feature_output:
-                        plt.figure(figsize=(12, 12))
+
+                    for i, ftr in enumerate(feature_output):
+                        figure = figures[i]
                         for i in range(1, len(ftr[0, 0, 0]) + 1):
-                            fig = plt.subplot(rows, columns, i)
-                            fig.set_xticks([])
-                            fig.set_yticks([])
-                            plt.imshow(ftr[0, :, :, i - 1], cmap='gray')
-                    plt.show()
+                            figure.imshow(ftr[0, :, :, i - 1], cmap='gray')
+                            # plt.imshow(ftr[0, :, :, i - 1], cmap='gray')
+                    plt.show(block=False)
 
                     action = tf.argmax(actions).numpy()
                     observation, reward, terminated, ball_dropped = env.step(action)
-
 
                     if ball_dropped:
                         env.step(1)
@@ -163,18 +145,15 @@ def showQGame(env, qNet, file_name, auto_shoot):
                     pygame.display.update()
                     mutate_frames(display, frames)
 
-
                     if terminated:
                         observation, total_rewards = terminate(env, frames, observation, total_rewards, file_name)
 
-
-
-                #if event.key == pygame.K_DOWN:
-                    #show_feature_maps(qNet.model, observation)
-                    #ary = env.render()
-                    #mutate_image(ary, display)
-                    #pygame.display.update()
-                    #mutate_frames(display, frames)
+                    # if event.key == pygame.K_DOWN:
+                    # show_feature_maps(qNet.model, observation)
+                    # ary = env.render()
+                    # mutate_image(ary, display)
+                    # pygame.display.update()
+                    # mutate_frames(display, frames)
 
                     clock.tick(PLAY_SPEED)
 
@@ -191,7 +170,7 @@ def terminate(env, frames, observation, total_rewards, qNetName):
     print("Total Reward: " + str(total_rewards))
     total_rewards = 0
     pygame.time.wait(DELAY_AFTER_DEATH * 1000)
-    #save_gif(frames, qNetName)
+    # save_gif(frames, qNetName)
     return observation, total_rewards
 
 
